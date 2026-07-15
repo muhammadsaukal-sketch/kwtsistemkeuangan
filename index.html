@@ -137,7 +137,11 @@
                                 <div class="mb-3"><label class="form-label text-muted small">Jenis Transaksi</label><select id="ak_jenis" class="form-select" required onchange="updateKategoriKas()"><option value="Pemasukan">Pemasukan (+)</option><option value="Pengeluaran">Pengeluaran (-)</option></select></div>
                                 <div class="mb-3"><label class="form-label text-muted small">Kategori</label><select id="ak_kategori" class="form-select" required></select></div>
                                 <div class="mb-3"><label class="form-label text-muted small">Keterangan</label><input type="text" id="ak_keterangan" class="form-control" placeholder="Detail transaksi..." required></div>
-                                <div class="mb-4"><label class="form-label text-muted small">Nominal (Rp)</label><input type="number" id="ak_nominal" class="form-control fw-bold" required min="1"></div>
+                                <div class="row g-2 mb-3">
+                                    <div class="col-6"><label class="form-label text-muted small">Jumlah</label><input type="number" id="ak_jumlah" class="form-control" required min="1" placeholder="Cth: 5"></div>
+                                    <div class="col-6"><label class="form-label text-muted small">Satuan</label><select id="ak_satuan" class="form-select" required><option value="Pcs">Pcs</option><option value="Kg">Kg</option><option value="Liter">Liter</option><option value="Paket">Paket</option><option value="Unit">Unit</option><option value="Lembar">Lembar</option><option value="Lain-lain">Lain-lain</option></select></div>
+                                </div>
+                                <div class="mb-4"><label class="form-label text-muted small">Nominal Total (Rp)</label><input type="text" id="ak_nominal" class="form-control fw-bold nominal-input" required placeholder="Cth: 120.000" oninput="formatNominalInput(this)"></div>
                                 <button type="submit" class="btn btn-custom-green w-100 py-2">Simpan ke Buku Kas</button>
                             </form>
                         </div>
@@ -160,7 +164,7 @@
                                 <div class="mb-3"><label class="form-label text-muted small">Tanggal</label><input type="date" id="dd_tanggal" class="form-control" required></div>
                                 <div class="mb-3"><label class="form-label text-muted small">Aksi</label><select id="dd_jenis" class="form-select" required><option value="Setor">Setor Dana (+)</option><option value="Tarik">Tarik Dana (-)</option></select></div>
                                 <div class="mb-3"><label class="form-label text-muted small">Tujuan/Alasan</label><input type="text" id="dd_keterangan" class="form-control" required></div>
-                                <div class="mb-4"><label class="form-label text-muted small">Nominal (Rp)</label><input type="number" id="dd_nominal" class="form-control fw-bold" required min="1"></div>
+                                <div class="mb-4"><label class="form-label text-muted small">Nominal (Rp)</label><input type="text" id="dd_nominal" class="form-control fw-bold nominal-input" required placeholder="Cth: 120.000" oninput="formatNominalInput(this)"></div>
                                 <button type="submit" class="btn btn-warning w-100 py-2 fw-bold text-dark">Proses Dana</button>
                             </form>
                         </div>
@@ -266,8 +270,13 @@
         }
 
         // --- CRUD VIA API VERCEL ---
+        function getNominalValue(id) { return Number(document.getElementById(id).value.replace(/\./g, '')); }
+        function formatNominalInput(el) { let v = el.value.replace(/\D/g, ''); el.value = v ? new Intl.NumberFormat('id-ID').format(Number(v)) : ''; }
+
         function submitArusKas(e) {
             e.preventDefault();
+            const nom = getNominalValue('ak_nominal');
+            if(!nom || nom < 1) { Swal.fire('Error','Nominal harus diisi','error'); return; }
             Swal.fire({ title: 'Simpan ke Buku Kas?', text: "Pastikan data sudah benar.", icon: 'info', showCancelButton: true, confirmButtonColor: '#2e7d32', confirmButtonText: 'Ya, Simpan'
             }).then((result) => {
                 if (result.isConfirmed) {
@@ -275,7 +284,8 @@
                     const data = {
                         tanggal: document.getElementById('ak_tanggal').value, jenis: document.getElementById('ak_jenis').value,
                         kategori: document.getElementById('ak_kategori').value, keterangan: document.getElementById('ak_keterangan').value,
-                        nominal: document.getElementById('ak_nominal').value
+                        jumlah: document.getElementById('ak_jumlah').value, satuan: document.getElementById('ak_satuan').value,
+                        nominal: nom
                     };
                     fetchAPI('simpanArusKas', { data: data }).then(res => {
                         hideLoader();
@@ -293,9 +303,11 @@
             }).then((result) => {
                 if (result.isConfirmed) {
                     showLoader();
+                    const nom = getNominalValue('dd_nominal');
+                    if(!nom || nom < 1) { hideLoader(); Swal.fire('Error','Nominal harus diisi','error'); return; }
                     const data = {
                         tanggal: document.getElementById('dd_tanggal').value, jenis: jenis,
-                        keterangan: document.getElementById('dd_keterangan').value, nominal: document.getElementById('dd_nominal').value
+                        keterangan: document.getElementById('dd_keterangan').value, nominal: nom
                     };
                     fetchAPI('simpanDanaDarurat', { data: data }).then(res => {
                         hideLoader();
@@ -341,7 +353,7 @@
                     htmlDash += `
                     <div class="list-group-item px-0 py-2">
                         <div class="d-flex justify-content-between align-items-center">
-                            <div><small class="text-muted d-block">${icon} ${item.tipeSumber} • ${item.tanggal}</small><span class="fw-bold" style="font-size:0.95rem;">${item.keterangan}</span></div>
+                            <div><small class="text-muted d-block">${icon} ${item.tipeSumber} • ${item.tanggal}</small><span class="fw-bold" style="font-size:0.95rem;">${item.keterangan}</span>${item.jumlah ? '<br><small class="text-muted"><i class="fa-solid fa-box-open"></i> '+item.jumlah+' '+item.satuan+'</small>' : ''}</div>
                             <span class="${isPlus ? 'text-success' : 'text-danger'} fw-bold" style="font-size:0.95rem;">${isPlus ? '+' : '-'} Rp ${formatRupiah(item.nominal)}</span>
                         </div>
                     </div>`;
@@ -356,7 +368,7 @@
                     htmlKas += `
                     <div class="list-group-item p-3 border-bottom">
                         <div class="d-flex justify-content-between align-items-center">
-                            <div><small class="text-muted">${item.tanggal} • ${item.kategori}</small><h6 class="mb-0 fw-bold">${item.keterangan}</h6><h6 class="${item.jenis === 'Pemasukan' ? 'text-success' : 'text-danger'} fw-bold mb-0 mt-1">${sign} Rp ${formatRupiah(item.nominal)}</h6></div>
+                            <div><small class="text-muted">${item.tanggal} • ${item.kategori}</small><h6 class="mb-0 fw-bold">${item.keterangan}</h6>${item.jumlah ? '<small class="text-secondary"><i class="fa-solid fa-box-open"></i> '+item.jumlah+' '+item.satuan+'</small>' : ''}<h6 class="${item.jenis === 'Pemasukan' ? 'text-success' : 'text-danger'} fw-bold mb-0 mt-1">${sign} Rp ${formatRupiah(item.nominal)}</h6></div>
                             <button class="btn-delete-sm" onclick="hapusData('${item.id}', 'AK')" title="Hapus"><i class="fa-solid fa-trash-can"></i></button>
                         </div>
                     </div>`;

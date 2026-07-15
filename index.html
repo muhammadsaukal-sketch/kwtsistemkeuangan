@@ -44,6 +44,9 @@
         .scan-preview { width: 100%; height: 200px; border: 2px dashed #2e7d32; border-radius: 12px; display: flex; align-items: center; justify-content: center; background-color: #e8f5e9; overflow: hidden; position: relative; margin-bottom: 15px;}
         .scan-preview img { width: 100%; height: 100%; object-fit: contain; display: none; }
         .scan-placeholder { text-align: center; color: #2e7d32; cursor: pointer; }
+        .input-password-wrap { position: relative; }
+        .input-password-wrap .form-control { padding-right: 45px; }
+        .btn-toggle-pw { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; color: #888; cursor: pointer; font-size: 1.1rem; }
     </style>
 </head>
 <body>
@@ -64,7 +67,10 @@
                     <input type="text" id="username" class="form-control" required placeholder="Username">
                 </div>
                 <div class="mb-4 text-start">
-                    <input type="password" id="password" class="form-control" required placeholder="Password">
+                    <div class="input-password-wrap">
+                        <input type="password" id="password" class="form-control" required placeholder="Password">
+                        <button type="button" class="btn-toggle-pw" onclick="togglePassword()"><i class="fa-solid fa-eye" id="iconPw"></i></button>
+                    </div>
                 </div>
                 <button type="submit" class="btn btn-custom-green w-100 py-2" id="btnLogin">Login</button>
             </form>
@@ -269,6 +275,11 @@
 
         function showLoader() { document.getElementById('global-loader').style.display = 'flex'; }
         function hideLoader() { document.getElementById('global-loader').style.display = 'none'; }
+        function togglePassword() {
+            const pw = document.getElementById('password'), ic = document.getElementById('iconPw');
+            if(pw.type === 'password') { pw.type = 'text'; ic.classList.replace('fa-eye','fa-eye-slash'); }
+            else { pw.type = 'password'; ic.classList.replace('fa-eye-slash','fa-eye'); }
+        }
 
         // --- SISTEM LOGIN (VERSI VERCEL API) ---
         function handleLogin(e) {

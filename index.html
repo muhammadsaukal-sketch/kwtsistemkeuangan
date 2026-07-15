@@ -25,9 +25,9 @@
         .btn-custom-green { background-color: var(--primary-green); color: white; border-radius: 10px; font-weight: 500;}
         .btn-custom-green:hover { background-color: #1b5e20; color: white;}
         .form-control, .form-select { border-radius: 10px; border: 1px solid #dee2e6; padding: 10px 15px;}
-        .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: white; box-shadow: 0 -5px 20px rgba(0,0,0,0.08); display: flex; justify-content: space-around; padding: 12px 0 15px 0; z-index: 1000; border-top-left-radius: 25px; border-top-right-radius: 25px; }
-        .nav-item { text-align: center; color: #95a5a6; cursor: pointer; font-size: 0.8rem; font-weight: 500; transition: 0.3s;}
-        .nav-item i { display: block; font-size: 1.3rem; margin-bottom: 4px; }
+        .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: white; box-shadow: 0 -5px 20px rgba(0,0,0,0.08); display: flex; justify-content: space-between; padding: 10px 10px 15px 10px; z-index: 1000; border-top-left-radius: 25px; border-top-right-radius: 25px; }
+        .nav-item { flex: 1; text-align: center; color: #95a5a6; cursor: pointer; font-size: 0.75rem; font-weight: 500; transition: 0.3s;}
+        .nav-item i { display: block; font-size: 1.25rem; margin-bottom: 4px; }
         .nav-item.active { color: var(--primary-green); transform: translateY(-3px);}
         #app-container { margin-bottom: 90px; display: none; }
         .view-section { display: none; animation: fadeIn 0.4s; }
@@ -41,6 +41,9 @@
         #global-loader { position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(255,255,255,0.85); z-index: 9999; display: flex; align-items: center; justify-content: center; flex-direction: column; display: none; backdrop-filter: blur(2px);}
         .btn-delete-sm { color: #e74c3c; cursor: pointer; padding: 5px 10px; border-radius: 5px; transition: 0.2s; background: none; border: none;}
         .btn-delete-sm:hover { background-color: #ffebee; }
+        .scan-preview { width: 100%; height: 200px; border: 2px dashed #2e7d32; border-radius: 12px; display: flex; align-items: center; justify-content: center; background-color: #e8f5e9; overflow: hidden; position: relative; margin-bottom: 15px;}
+        .scan-preview img { width: 100%; height: 100%; object-fit: contain; display: none; }
+        .scan-placeholder { text-align: center; color: #2e7d32; cursor: pointer; }
     </style>
 </head>
 <body>
@@ -172,12 +175,50 @@
                     <div class="tab-pane fade" id="darurat-riwayat"><div class="card p-0 overflow-hidden"><div class="list-group list-group-flush" id="list-riwayat-darurat"></div></div></div>
                 </div>
             </div>
+            <!-- ARSIP DIGITAL -->
+            <div id="view-arsip" class="view-section">
+                <h5 class="fw-bold text-primary mb-3"><i class="fa-solid fa-file-shield"></i> E-Arsip Dokumen</h5>
+                <ul class="nav nav-pills nav-fill mb-3">
+                    <li class="nav-item-tab"><button class="nav-link active w-100" data-bs-toggle="pill" data-bs-target="#arsip-input">Scan Dokumen</button></li>
+                    <li class="nav-item-tab ms-2"><button class="nav-link w-100" data-bs-toggle="pill" data-bs-target="#arsip-riwayat">File Tersimpan</button></li>
+                </ul>
+                <div class="tab-content">
+                    <div class="tab-pane fade show active" id="arsip-input">
+                        <div class="card p-3 border-primary border-opacity-25">
+                            <form id="formArsip" onsubmit="submitArsip(event)">
+                                <div class="scan-preview" onclick="document.getElementById('inputKamera').click()">
+                                    <div class="scan-placeholder" id="arsip-placeholder">
+                                        <i class="fa-solid fa-camera fa-3x mb-2"></i><br>
+                                        <b>Ketuk untuk Scan/Foto Nota</b><br><small class="text-muted">Gunakan kamera HP Anda</small>
+                                    </div>
+                                    <img id="arsip-image-preview" src="">
+                                    <input type="file" id="inputKamera" accept="image/*" capture="environment" style="display: none;" onchange="handleScanPreview(event)">
+                                </div>
+                                <input type="hidden" id="arsip_base64">
+                                <div class="mb-3"><label class="form-label text-muted small">Tanggal Dokumen</label><input type="date" id="arsip_tanggal" class="form-control" required></div>
+                                <div class="mb-3"><label class="form-label text-muted small">Nama File / Dokumen</label><input type="text" id="arsip_nama" class="form-control" placeholder="Cth: Nota Pupuk NPK" required></div>
+                                <div class="mb-3"><label class="form-label text-muted small">Kategori Dokumen</label>
+                                    <select id="arsip_kategori" class="form-select" required>
+                                        <option value="Nota Belanja">Nota / Struk Belanja</option><option value="Bukti Transfer">Bukti Transfer (Bank/E-Wallet)</option>
+                                        <option value="Surat Resmi">Surat Resmi / Proposal</option><option value="Dokumentasi">Dokumentasi / Foto Kegiatan</option>
+                                        <option value="Lainnya">Lainnya</option>
+                                    </select>
+                                </div>
+                                <div class="mb-4"><label class="form-label text-muted small">Keterangan Tambahan</label><input type="text" id="arsip_keterangan" class="form-control" placeholder="Isi detail jika diperlukan..." required></div>
+                                <button type="submit" class="btn btn-primary w-100 py-2 fw-bold">Upload & Simpan ke Drive</button>
+                            </form>
+                        </div>
+                    </div>
+                    <div class="tab-pane fade" id="arsip-riwayat"><div class="card p-0 overflow-hidden"><div class="list-group list-group-flush" id="list-riwayat-arsip"></div></div></div>
+                </div>
+            </div>
         </div>
 
         <div class="bottom-nav">
             <div class="nav-item active" onclick="switchView('dashboard', this)"><i class="fa-solid fa-chart-line"></i> Dashboard</div>
             <div class="nav-item" onclick="switchView('aruskas', this)"><i class="fa-solid fa-wallet"></i> Arus Kas</div>
             <div class="nav-item" onclick="switchView('danadarurat', this)"><i class="fa-solid fa-umbrella"></i> Darurat</div>
+            <div class="nav-item" onclick="switchView('arsip', this)"><i class="fa-solid fa-file-signature"></i> Arsip</div>
             <div class="nav-item text-danger" onclick="logout()"><i class="fa-solid fa-power-off"></i> Keluar</div>
         </div>
     </div>
@@ -222,6 +263,7 @@
             }
             document.getElementById('ak_tanggal').valueAsDate = new Date();
             document.getElementById('dd_tanggal').valueAsDate = new Date();
+            document.getElementById('arsip_tanggal').valueAsDate = new Date();
             updateKategoriKas();
         };
 
@@ -348,13 +390,20 @@
                 let htmlDash = '';
                 if(data.riwayatGabungan.length === 0) htmlDash = '<p class="text-center text-muted py-3">Belum ada aktivitas.</p>';
                 data.riwayatGabungan.forEach(item => {
-                    let isPlus = (item.jenis === 'Pemasukan' || item.jenis === 'Setor');
-                    let icon = item.tipeSumber === 'Arus Kas' ? '<i class="fa-solid fa-wallet text-success"></i>' : '<i class="fa-solid fa-umbrella text-warning"></i>';
+                    let icon, nominalText;
+                    if(item.tipeSumber === 'E-Arsip') {
+                        icon = '<i class="fa-solid fa-file-invoice text-primary"></i>';
+                        nominalText = `<a href="${item.file_url}" target="_blank" class="btn btn-sm btn-outline-primary" style="font-size:0.7rem;"><i class="fa-solid fa-eye"></i> Lihat</a>`;
+                    } else {
+                        let isPlus = (item.jenis === 'Pemasukan' || item.jenis === 'Setor');
+                        icon = item.tipeSumber === 'Arus Kas' ? '<i class="fa-solid fa-wallet text-success"></i>' : '<i class="fa-solid fa-umbrella text-warning"></i>';
+                        nominalText = `<span class="${isPlus ? 'text-success' : 'text-danger'} fw-bold" style="font-size:0.9rem;">${isPlus ? '+' : '-'} Rp ${formatRupiah(item.nominal)}</span>`;
+                    }
                     htmlDash += `
                     <div class="list-group-item px-0 py-2">
                         <div class="d-flex justify-content-between align-items-center">
-                            <div><small class="text-muted d-block">${icon} ${item.tipeSumber} • ${item.tanggal}</small><span class="fw-bold" style="font-size:0.95rem;">${item.keterangan}</span>${item.jumlah ? '<br><small class="text-muted"><i class="fa-solid fa-box-open"></i> '+item.jumlah+' '+item.satuan+'</small>' : ''}</div>
-                            <span class="${isPlus ? 'text-success' : 'text-danger'} fw-bold" style="font-size:0.95rem;">${isPlus ? '+' : '-'} Rp ${formatRupiah(item.nominal)}</span>
+                            <div><small class="text-muted d-block">${icon} ${item.tipeSumber} • ${item.tanggal}</small><span class="fw-bold" style="font-size:0.95rem;">${item.tipeSumber==='E-Arsip' ? item.nama_dokumen : item.keterangan}</span>${item.jumlah ? '<br><small class="text-muted"><i class="fa-solid fa-box-open"></i> '+item.jumlah+' '+item.satuan+'</small>' : ''}</div>
+                            ${nominalText}
                         </div>
                     </div>`;
                 });
@@ -388,6 +437,23 @@
                     </div>`;
                 });
                 document.getElementById('list-riwayat-darurat').innerHTML = htmlDD;
+
+                // Render Arsip
+                let htmlARS = '';
+                if(!data.riwayatArsip || data.riwayatArsip.length === 0) htmlARS = '<div class="p-4 text-center text-muted">Belum ada arsip.</div>';
+                else data.riwayatArsip.forEach(item => {
+                    htmlARS += `
+                    <div class="list-group-item p-3 border-bottom">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div><small class="text-muted">${item.tanggal} • ${item.kategori}</small><h6 class="mb-0 fw-bold text-primary">${item.nama_dokumen}</h6><small class="text-secondary">${item.keterangan}</small></div>
+                            <div>
+                                <a href="${item.file_url}" target="_blank" class="btn btn-sm btn-outline-primary me-1"><i class="fa-solid fa-download"></i></a>
+                                <button class="btn-delete-sm" onclick="hapusData('${item.id}', 'ARS')"><i class="fa-solid fa-trash-can"></i></button>
+                            </div>
+                        </div>
+                    </div>`;
+                });
+                document.getElementById('list-riwayat-arsip').innerHTML = htmlARS;
             });
         }
 
@@ -427,6 +493,65 @@
                     datasets: [{ data: dataArr, backgroundColor: colors, borderWidth: 0 }]
                 },
                 options: { responsive: true, maintainAspectRatio: false, cutout: '70%', plugins: { legend: { position: 'bottom' } } }
+            });
+        }
+
+        // ==========================================
+        // LOGIKA E-ARSIP & KOMPRESI KAMERA
+        // ==========================================
+        function handleScanPreview(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            document.getElementById('arsip-placeholder').style.display = 'none';
+            const imgEl = document.getElementById('arsip-image-preview');
+            imgEl.style.display = 'block';
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = function(e) {
+                const img = new Image();
+                img.src = e.target.result;
+                img.onload = function() {
+                    const canvas = document.createElement('canvas');
+                    const MAX_WIDTH = 800;
+                    let width = img.width, height = img.height;
+                    if (width > MAX_WIDTH) { height = Math.round((height * MAX_WIDTH) / width); width = MAX_WIDTH; }
+                    canvas.width = width; canvas.height = height;
+                    canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+                    const compressedBase64 = canvas.toDataURL('image/jpeg', 0.7);
+                    imgEl.src = compressedBase64;
+                    document.getElementById('arsip_base64').value = compressedBase64;
+                }
+            }
+        }
+
+        function submitArsip(e) {
+            e.preventDefault();
+            const base64 = document.getElementById('arsip_base64').value;
+            if(!base64) { Swal.fire('Peringatan', 'Silakan Scan/Foto dokumen terlebih dahulu!', 'warning'); return; }
+            Swal.fire({ title: 'Upload Dokumen?', text: 'Pastikan data sudah sesuai.', icon: 'info', showCancelButton: true, confirmButtonColor: '#0d6efd', confirmButtonText: 'Ya, Upload'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    showLoader();
+                    const data = {
+                        tanggal: document.getElementById('arsip_tanggal').value,
+                        nama_dokumen: document.getElementById('arsip_nama').value,
+                        kategori: document.getElementById('arsip_kategori').value,
+                        keterangan: document.getElementById('arsip_keterangan').value,
+                        fileName: document.getElementById('arsip_nama').value.replace(/\s+/g, '_') + '.jpg',
+                        base64Data: base64
+                    };
+                    fetchAPI('simpanArsip', { data: data }).then(res => {
+                        hideLoader();
+                        if (res.status) {
+                            Swal.fire('Berhasil!', 'Dokumen tersimpan di Google Drive', 'success');
+                            document.getElementById('formArsip').reset();
+                            document.getElementById('arsip-image-preview').style.display = 'none';
+                            document.getElementById('arsip-placeholder').style.display = 'block';
+                            document.getElementById('arsip_base64').value = '';
+                            syncData();
+                        } else Swal.fire('Error', res.message, 'error');
+                    });
+                }
             });
         }
 

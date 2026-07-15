@@ -12,13 +12,7 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
     
     <style>
-        /* CSS Sama persis, sehingga responsivitas 100% terjaga */
-        :root {
-            --primary-green: #2e7d32;
-            --light-green: #e8f5e9;
-            --accent-yellow: #fbc02d;
-            --bg-body: #f5f7f9;
-        }
+        :root { --primary-green: #2e7d32; --light-green: #e8f5e9; --accent-yellow: #fbc02d; --bg-body: #f5f7f9; }
         body { background-color: var(--bg-body); font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; overflow-x: hidden; }
         .card { border: none; border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.04); }
         .bg-gradient-green { background: linear-gradient(135deg, #1b5e20, #2e7d32); color: white; }
@@ -45,10 +39,9 @@
 </head>
 <body>
 
-    <!-- LOADER -->
     <div id="global-loader">
         <div class="spinner-border text-success" role="status" style="width: 3rem; height: 3rem;"></div>
-        <h5 class="mt-3 text-success fw-bold">Berkomunikasi ke Server...</h5>
+        <h5 class="mt-3 text-success fw-bold">Memproses Data...</h5>
     </div>
 
     <!-- PORTAL LOGIN -->
@@ -57,26 +50,23 @@
             <h2 class="text-success mb-1"><i class="fa-solid fa-seedling"></i></h2>
             <h4 class="mb-4" style="color: #2e7d32; font-weight: bold;">KWT Proklim</h4>
             <form id="loginForm" onsubmit="handleLogin(event)">
-                <div class="mb-3 text-start">
-                    <input type="text" id="username" class="form-control" required placeholder="Username">
-                </div>
-                <div class="mb-4 text-start">
-                    <input type="password" id="password" class="form-control" required placeholder="Password">
-                </div>
+                <div class="mb-3 text-start"><input type="text" id="username" class="form-control" required placeholder="Username"></div>
+                <div class="mb-4 text-start"><input type="password" id="password" class="form-control" required placeholder="Password"></div>
                 <button type="submit" class="btn btn-custom-green w-100 py-2" id="btnLogin">Login</button>
             </form>
         </div>
     </div>
 
-    <!-- MAIN APLIKASI -->
+    <!-- MAIN APP -->
     <div id="app-container">
         <div class="bg-gradient-green p-4 text-center" style="border-bottom-left-radius: 30px; border-bottom-right-radius: 30px; box-shadow: 0 4px 15px rgba(0,0,0,0.15);">
             <h4 class="mb-1 mt-2 fw-bold">Sistem Keuangan</h4>
-            <p class="mb-0" style="font-size: 0.9rem; color: #c8e6c9;">Kelompok Wanita Tani (KWT)</p>
+            <p class="mb-0" style="font-size: 0.9rem; color: #c8e6c9;">Kelompok Wanita Tani</p>
         </div>
 
         <div class="container mt-4">
-            <!-- DASHBOARD -->
+            
+            <!-- DASHBOARD VIEW -->
             <div id="view-dashboard" class="view-section active">
                 <button onclick="downloadPDF()" class="btn btn-dark w-100 mb-4 py-2" style="border-radius: 12px; font-weight: 500; box-shadow: 0 4px 10px rgba(0,0,0,0.2);">
                     <i class="fa-solid fa-file-pdf text-danger me-2"></i> Download Laporan Keuangan (PDF)
@@ -85,7 +75,7 @@
                 <div class="row g-3 mb-4">
                     <div class="col-6">
                         <div class="card bg-white p-3 border-top border-success border-4 text-center h-100">
-                            <h6 class="text-muted mb-2" style="font-size: 0.8rem;">Saldo Kas</h6>
+                            <h6 class="text-muted mb-2" style="font-size: 0.8rem;">Saldo Kas Total</h6>
                             <h4 id="dash-saldo-kas" class="text-success fw-bold rupiah mb-0">0</h4>
                         </div>
                     </div>
@@ -97,50 +87,52 @@
                     </div>
                 </div>
 
-                <div class="card mb-4 p-3">
-                    <h6 class="fw-bold mb-3 text-secondary border-bottom pb-2"><i class="fa-solid fa-chart-pie me-2"></i>Visualisasi Arus Kas</h6>
-                    <div class="chart-container" style="position: relative; height: 220px; width: 100%;">
-                        <canvas id="kasChart"></canvas>
-                    </div>
+                <div class="d-flex justify-content-between align-items-center mb-3 mt-4">
+                    <h6 class="fw-bold text-secondary mb-0"><i class="fa-solid fa-chart-pie me-2"></i>Rekapitulasi Kas</h6>
+                    <select id="filter-periode" class="form-select form-select-sm w-auto shadow-sm" onchange="filterDashboard()">
+                        <option value="semua">Semua Waktu</option><option value="harian">Hari Ini</option>
+                        <option value="bulanan">Bulan Ini</option><option value="tahunan">Tahun Ini</option>
+                    </select>
                 </div>
 
-                <div class="card mb-4 p-3">
-                    <h6 class="fw-bold mb-3 text-secondary border-bottom pb-2"><i class="fa-solid fa-clock-rotate-left me-2"></i>Aktivitas Terkini</h6>
+                <div class="row g-2 mb-3">
+                    <div class="col-6"><div class="card bg-white p-2 border-start border-success border-4 shadow-sm text-center"><small class="text-muted" style="font-size: 0.7rem;">Pemasukan <span id="label-pem">Semua</span></small><h6 id="filter-pemasukan" class="text-success fw-bold rupiah mb-0 mt-1">0</h6></div></div>
+                    <div class="col-6"><div class="card bg-white p-2 border-start border-danger border-4 shadow-sm text-center"><small class="text-muted" style="font-size: 0.7rem;">Pengeluaran <span id="label-peng">Semua</span></small><h6 id="filter-pengeluaran" class="text-danger fw-bold rupiah mb-0 mt-1">0</h6></div></div>
+                </div>
+
+                <div class="card mb-4 p-3 shadow-sm"><div class="chart-container" style="position: relative; height: 200px; width: 100%;"><canvas id="kasChart"></canvas></div></div>
+
+                <div class="card mb-4 p-3 shadow-sm">
+                    <h6 class="fw-bold mb-3 text-secondary border-bottom pb-2"><i class="fa-solid fa-clock-rotate-left me-2"></i>Aktivitas Sistem Terkini</h6>
                     <div id="dashboard-history" class="list-group list-group-flush"></div>
                 </div>
             </div>
 
-            <!-- ARUS KAS -->
+            <!-- ARUS KAS VIEW -->
             <div id="view-aruskas" class="view-section">
                 <h5 class="fw-bold text-success mb-3"><i class="fa-solid fa-book-journal-whills"></i> Buku Arus Kas</h5>
-                <ul class="nav nav-pills nav-fill mb-3" id="pills-tab-kas" role="tablist">
-                    <li class="nav-item-tab" role="presentation"><button class="nav-link active w-100" data-bs-toggle="pill" data-bs-target="#kas-input" type="button">Input Data</button></li>
-                    <li class="nav-item-tab ms-2" role="presentation"><button class="nav-link w-100" data-bs-toggle="pill" data-bs-target="#kas-riwayat" type="button">Riwayat</button></li>
-                </ul>
+                <ul class="nav nav-pills nav-fill mb-3"><li class="nav-item-tab"><button class="nav-link active w-100" data-bs-toggle="pill" data-bs-target="#kas-input">Input Data</button></li><li class="nav-item-tab ms-2"><button class="nav-link w-100" data-bs-toggle="pill" data-bs-target="#kas-riwayat">Riwayat</button></li></ul>
                 <div class="tab-content">
                     <div class="tab-pane fade show active" id="kas-input">
                         <div class="card p-3">
                             <form id="formArusKas" onsubmit="submitArusKas(event)">
                                 <div class="mb-3"><label class="form-label text-muted small">Tanggal</label><input type="date" id="ak_tanggal" class="form-control" required></div>
-                                <div class="mb-3"><label class="form-label text-muted small">Jenis Transaksi</label><select id="ak_jenis" class="form-select" required onchange="updateKategoriKas()"><option value="Pemasukan">Pemasukan (+)</option><option value="Pengeluaran">Pengeluaran (-)</option></select></div>
+                                <div class="mb-3"><label class="form-label text-muted small">Jenis</label><select id="ak_jenis" class="form-select" required onchange="updateKategoriKas()"><option value="Pemasukan">Pemasukan (+)</option><option value="Pengeluaran">Pengeluaran (-)</option></select></div>
                                 <div class="mb-3"><label class="form-label text-muted small">Kategori</label><select id="ak_kategori" class="form-select" required></select></div>
-                                <div class="mb-3"><label class="form-label text-muted small">Keterangan</label><input type="text" id="ak_keterangan" class="form-control" placeholder="Detail transaksi..." required></div>
+                                <div class="mb-3"><label class="form-label text-muted small">Keterangan</label><input type="text" id="ak_keterangan" class="form-control" required></div>
                                 <div class="mb-4"><label class="form-label text-muted small">Nominal (Rp)</label><input type="number" id="ak_nominal" class="form-control fw-bold" required min="1"></div>
                                 <button type="submit" class="btn btn-custom-green w-100 py-2">Simpan ke Buku Kas</button>
                             </form>
                         </div>
                     </div>
-                    <div class="tab-pane fade" id="kas-riwayat"><div class="card p-0 overflow-hidden"><div class="list-group list-group-flush" id="list-riwayat-kas"></div></div></div>
+                    <div class="tab-pane fade" id="kas-riwayat"><div class="card p-0"><div class="list-group list-group-flush" id="list-riwayat-kas"></div></div></div>
                 </div>
             </div>
 
-            <!-- DANA DARURAT -->
+            <!-- DANA DARURAT VIEW -->
             <div id="view-danadarurat" class="view-section">
                 <h5 class="fw-bold text-warning mb-3"><i class="fa-solid fa-piggy-bank"></i> Kelola Dana Darurat</h5>
-                <ul class="nav nav-pills nav-fill mb-3" id="pills-tab-darurat" role="tablist">
-                    <li class="nav-item-tab" role="presentation"><button class="nav-link active w-100" data-bs-toggle="pill" data-bs-target="#darurat-input" type="button">Setor/Tarik</button></li>
-                    <li class="nav-item-tab ms-2" role="presentation"><button class="nav-link w-100" data-bs-toggle="pill" data-bs-target="#darurat-riwayat" type="button">Riwayat</button></li>
-                </ul>
+                <ul class="nav nav-pills nav-fill mb-3"><li class="nav-item-tab"><button class="nav-link active w-100" data-bs-toggle="pill" data-bs-target="#darurat-input">Setor/Tarik</button></li><li class="nav-item-tab ms-2"><button class="nav-link w-100" data-bs-toggle="pill" data-bs-target="#darurat-riwayat">Riwayat</button></li></ul>
                 <div class="tab-content">
                     <div class="tab-pane fade show active" id="darurat-input">
                         <div class="card p-3 border-warning border-opacity-50">
@@ -153,7 +145,7 @@
                             </form>
                         </div>
                     </div>
-                    <div class="tab-pane fade" id="darurat-riwayat"><div class="card p-0 overflow-hidden"><div class="list-group list-group-flush" id="list-riwayat-darurat"></div></div></div>
+                    <div class="tab-pane fade" id="darurat-riwayat"><div class="card p-0"><div class="list-group list-group-flush" id="list-riwayat-darurat"></div></div></div>
                 </div>
             </div>
         </div>
@@ -166,7 +158,7 @@
         </div>
     </div>
 
-    <!-- Scripts CDN -->
+    <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
@@ -174,28 +166,20 @@
     
     <script>
         // ==============================================================
-        // MASUKKAN URL API GOOGLE APPS SCRIPT ANDA DI BAWAH INI !!!
+        // GANTI DENGAN URL SCRIPT ANDA (DARI GOOGLE APPS SCRIPT)
         // ==============================================================
         const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyPnMK4smtZe1T9JfbOXO8XUvqjBXZ5m_Vbaq6TtZEE3GvMtgjaWw--hplySgbBoDDS/exec';
         
         const formatRupiah = (angka) => new Intl.NumberFormat('id-ID').format(angka);
-        let globalDataForPDF = null;
-        let myChart = null;
+        let globalDataForPDF = null; let myChart = null;
 
-        // FUNGSI JEMBATAN KE API GOOGLE APPS SCRIPT
         async function fetchAPI(action, params = {}) {
-            const formData = new URLSearchParams();
-            formData.append('action', action);
-            for (const key in params) {
-                formData.append(key, typeof params[key] === 'object' ? JSON.stringify(params[key]) : params[key]);
-            }
+            const formData = new URLSearchParams(); formData.append('action', action);
+            for (const key in params) formData.append(key, typeof params[key] === 'object' ? JSON.stringify(params[key]) : params[key]);
             try {
                 const response = await fetch(SCRIPT_URL, { method: 'POST', body: formData });
                 return await response.json();
-            } catch (error) {
-                console.error("Fetch API Error:", error);
-                return { status: false, message: "Koneksi ke Server Terputus. Pastikan URL SCRIPT_URL sudah benar." };
-            }
+            } catch (error) { return { status: false, message: "Koneksi ke Server Terputus." }; }
         }
 
         window.onload = function() {
@@ -211,40 +195,7 @@
 
         function showLoader() { document.getElementById('global-loader').style.display = 'flex'; }
         function hideLoader() { document.getElementById('global-loader').style.display = 'none'; }
-
-        // --- SISTEM LOGIN (VERSI VERCEL API) ---
-        function handleLogin(e) {
-            e.preventDefault();
-            const user = document.getElementById('username').value;
-            const pass = document.getElementById('password').value;
-            const btn = document.getElementById('btnLogin');
-            btn.innerHTML = 'Memeriksa...'; btn.disabled = true;
-
-            fetchAPI('login', { username: user, password: pass }).then(res => {
-                btn.innerHTML = 'Login'; btn.disabled = false;
-                if (res.status) {
-                    sessionStorage.setItem('kwt_is_logged_in', 'true');
-                    Swal.fire({ icon: 'success', title: 'Login Berhasil', showConfirmButton: false, timer: 1000 });
-                    document.getElementById('login-container').style.display = 'none';
-                    document.getElementById('app-container').style.display = 'block';
-                    syncData();
-                } else Swal.fire({ icon: 'error', title: 'Gagal', text: res.message });
-            });
-        }
-
-        function logout() {
-            Swal.fire({ title: 'Konfirmasi Keluar', text: 'Anda akan keluar dari sistem.', icon: 'question', showCancelButton: true, confirmButtonColor: '#e74c3c', confirmButtonText: 'Keluar'
-            }).then((result) => { if (result.isConfirmed) { sessionStorage.removeItem('kwt_is_logged_in'); location.reload(); } });
-        }
-
-        function updateKategoriKas() {
-            const jenis = document.getElementById('ak_jenis').value;
-            const select = document.getElementById('ak_kategori');
-            select.innerHTML = '';
-            let options = jenis === 'Pemasukan' ? ['Penjualan Hasil Panen', 'Iuran Anggota', 'Hibah/Bantuan', 'Lain-lain'] : ['Pembelian Bibit/Pupuk', 'Operasional', 'Konsumsi', 'Perawatan', 'Lain-lain'];
-            options.forEach(opt => select.appendChild(new Option(opt, opt)));
-        }
-
+        function logout() { sessionStorage.removeItem('kwt_is_logged_in'); location.reload(); }
         function switchView(viewName, element) {
             document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
             document.getElementById('view-' + viewName).classList.add('active');
@@ -253,246 +204,101 @@
             if(viewName === 'dashboard') syncData();
         }
 
-        // --- CRUD VIA API VERCEL ---
-        function submitArusKas(e) {
+        function handleLogin(e) {
             e.preventDefault();
-            Swal.fire({ title: 'Simpan ke Buku Kas?', text: "Pastikan data sudah benar.", icon: 'info', showCancelButton: true, confirmButtonColor: '#2e7d32', confirmButtonText: 'Ya, Simpan'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    showLoader();
-                    const data = {
-                        tanggal: document.getElementById('ak_tanggal').value, jenis: document.getElementById('ak_jenis').value,
-                        kategori: document.getElementById('ak_kategori').value, keterangan: document.getElementById('ak_keterangan').value,
-                        nominal: document.getElementById('ak_nominal').value
-                    };
-                    fetchAPI('simpanArusKas', { data: data }).then(res => {
-                        hideLoader();
-                        if (res.status) { Swal.fire('Tersimpan', '', 'success'); document.getElementById('formArusKas').reset(); syncData(); }
-                        else Swal.fire('Error', res.message, 'error');
-                    });
-                }
+            const btn = document.getElementById('btnLogin'); btn.innerHTML = 'Memeriksa...'; btn.disabled = true;
+            fetchAPI('login', { username: document.getElementById('username').value, password: document.getElementById('password').value }).then(res => {
+                btn.innerHTML = 'Login'; btn.disabled = false;
+                if (res.status) {
+                    sessionStorage.setItem('kwt_is_logged_in', 'true');
+                    Swal.fire({ icon: 'success', title: 'Login Berhasil', showConfirmButton: false, timer: 1000 });
+                    document.getElementById('login-container').style.display = 'none'; document.getElementById('app-container').style.display = 'block';
+                    syncData();
+                } else Swal.fire({ icon: 'error', title: 'Gagal', text: res.message });
             });
         }
 
-        function submitDanaDarurat(e) {
-            e.preventDefault();
-            const jenis = document.getElementById('dd_jenis').value;
-            Swal.fire({ title: 'Proses Dana Darurat?', text: "Pastikan nominal benar.", icon: 'info', showCancelButton: true, confirmButtonColor: '#fbc02d', confirmButtonText: 'Ya, Proses'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    showLoader();
-                    const data = {
-                        tanggal: document.getElementById('dd_tanggal').value, jenis: jenis,
-                        keterangan: document.getElementById('dd_keterangan').value, nominal: document.getElementById('dd_nominal').value
-                    };
-                    fetchAPI('simpanDanaDarurat', { data: data }).then(res => {
-                        hideLoader();
-                        if (res.status) { Swal.fire('Sukses', '', 'success'); document.getElementById('formDanaDarurat').reset(); syncData(); }
-                        else Swal.fire('Error', res.message, 'error');
-                    });
-                }
-            });
+        function updateKategoriKas() {
+            const select = document.getElementById('ak_kategori'); select.innerHTML = '';
+            let options = document.getElementById('ak_jenis').value === 'Pemasukan' ? ['Penjualan Hasil Panen', 'Iuran Anggota', 'Hibah/Bantuan', 'Lain-lain'] : ['Pembelian Bibit/Pupuk', 'Operasional', 'Konsumsi', 'Perawatan', 'Lain-lain'];
+            options.forEach(opt => select.appendChild(new Option(opt, opt)));
         }
 
+        function submitArusKas(e) { e.preventDefault(); confirmSubmit('simpanArusKas', { tanggal: document.getElementById('ak_tanggal').value, jenis: document.getElementById('ak_jenis').value, kategori: document.getElementById('ak_kategori').value, keterangan: document.getElementById('ak_keterangan').value, nominal: document.getElementById('ak_nominal').value }, 'formArusKas'); }
+        function submitDanaDarurat(e) { e.preventDefault(); confirmSubmit('simpanDanaDarurat', { tanggal: document.getElementById('dd_tanggal').value, jenis: document.getElementById('dd_jenis').value, keterangan: document.getElementById('dd_keterangan').value, nominal: document.getElementById('dd_nominal').value }, 'formDanaDarurat'); }
         function hapusData(id, tipe) {
-            Swal.fire({ title: 'Hapus Riwayat Ini?', text: "Tindakan ini tidak bisa dibatalkan!", icon: 'warning', showCancelButton: true, confirmButtonColor: '#e74c3c', confirmButtonText: 'Ya, Hapus Data'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    showLoader();
-                    fetchAPI('hapusTransaksi', { id: id, tipe: tipe }).then(res => {
-                        hideLoader();
-                        if (res.status) { Swal.fire('Terhapus!', res.message, 'success'); syncData(); }
-                        else Swal.fire('Gagal', res.message, 'error');
-                    });
-                }
+            Swal.fire({ title: 'Hapus Riwayat?', icon: 'warning', showCancelButton: true, confirmButtonColor: '#e74c3c', confirmButtonText: 'Ya, Hapus' }).then((r) => {
+                if (r.isConfirmed) { showLoader(); fetchAPI('hapusTransaksi', { id: id, tipe: tipe }).then(res => { hideLoader(); if (res.status) { Swal.fire('Terhapus!', res.message, 'success'); syncData(); } else Swal.fire('Gagal', res.message, 'error'); }); }
+            });
+        }
+        function confirmSubmit(action, data, formId) {
+            Swal.fire({ title: 'Simpan Data?', icon: 'info', showCancelButton: true, confirmButtonColor: '#2e7d32', confirmButtonText: 'Ya, Simpan' }).then((r) => {
+                if (r.isConfirmed) { showLoader(); fetchAPI(action, { data: data }).then(res => { hideLoader(); if (res.status) { Swal.fire('Tersimpan', '', 'success'); document.getElementById(formId).reset(); syncData(); } else Swal.fire('Error', res.message, 'error'); }); }
             });
         }
 
         function syncData() {
-            document.getElementById('dash-saldo-kas').innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
             fetchAPI('getAppData').then(data => {
-                if(!data.status) { Swal.fire('Koneksi Gagal', 'URL Script Apps Anda salah atau belum di-deploy Anyone', 'error'); return; }
-                
+                if(!data.status) return;
                 globalDataForPDF = data;
                 document.getElementById('dash-saldo-kas').innerText = formatRupiah(data.saldoKas);
                 document.getElementById('dash-saldo-darurat').innerText = formatRupiah(data.saldoDarurat);
+                filterDashboard(); 
 
-                // Render Chart
-                renderChart(data.totalPemasukan, data.totalPengeluaran);
-
-                // Render Dashboard
                 let htmlDash = '';
-                if(data.riwayatGabungan.length === 0) htmlDash = '<p class="text-center text-muted py-3">Belum ada aktivitas.</p>';
                 data.riwayatGabungan.forEach(item => {
                     let isPlus = (item.jenis === 'Pemasukan' || item.jenis === 'Setor');
-                    let icon = item.tipeSumber === 'Arus Kas' ? '<i class="fa-solid fa-wallet text-success"></i>' : '<i class="fa-solid fa-umbrella text-warning"></i>';
-                    htmlDash += `
-                    <div class="list-group-item px-0 py-2">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div><small class="text-muted d-block">${icon} ${item.tipeSumber} • ${item.tanggal}</small><span class="fw-bold" style="font-size:0.95rem;">${item.keterangan}</span></div>
-                            <span class="${isPlus ? 'text-success' : 'text-danger'} fw-bold" style="font-size:0.95rem;">${isPlus ? '+' : '-'} Rp ${formatRupiah(item.nominal)}</span>
-                        </div>
-                    </div>`;
+                    let colorClass = isPlus ? 'text-success' : 'text-danger';
+                    htmlDash += `<div class="list-group-item px-0 py-2"><div class="d-flex justify-content-between align-items-center"><div><small class="text-muted d-block">${item.tipeSumber} • ${item.tanggal}</small><span class="fw-bold" style="font-size:0.95rem;">${item.keterangan}</span></div><span class="${colorClass} fw-bold">${isPlus?'+':'-'} Rp ${formatRupiah(item.nominal)}</span></div></div>`;
                 });
                 document.getElementById('dashboard-history').innerHTML = htmlDash;
 
-                // Render Kas
-                let htmlKas = '';
-                if(data.riwayatArusKas.length === 0) htmlKas = '<div class="p-4 text-center text-muted">Belum ada data</div>';
-                data.riwayatArusKas.forEach(item => {
-                    let sign = item.jenis === 'Pemasukan' ? '+' : '-';
-                    htmlKas += `
-                    <div class="list-group-item p-3 border-bottom">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div><small class="text-muted">${item.tanggal} • ${item.kategori}</small><h6 class="mb-0 fw-bold">${item.keterangan}</h6><h6 class="${item.jenis === 'Pemasukan' ? 'text-success' : 'text-danger'} fw-bold mb-0 mt-1">${sign} Rp ${formatRupiah(item.nominal)}</h6></div>
-                            <button class="btn-delete-sm" onclick="hapusData('${item.id}', 'AK')" title="Hapus"><i class="fa-solid fa-trash-can"></i></button>
-                        </div>
-                    </div>`;
-                });
-                document.getElementById('list-riwayat-kas').innerHTML = htmlKas;
-
-                // Render DD
-                let htmlDD = '';
-                if(data.riwayatDarurat.length === 0) htmlDD = '<div class="p-4 text-center text-muted">Belum ada data</div>';
-                data.riwayatDarurat.forEach(item => {
-                    htmlDD += `
-                    <div class="list-group-item p-3 border-bottom">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div><small class="text-muted">${item.tanggal} • ${item.jenis} Dana</small><h6 class="mb-0 fw-bold">${item.keterangan}</h6><h6 class="${item.jenis === 'Setor' ? 'text-success' : 'text-danger'} fw-bold mb-0 mt-1">Rp ${formatRupiah(item.nominal)}</h6></div>
-                            <button class="btn-delete-sm" onclick="hapusData('${item.id}', 'DD')" title="Hapus"><i class="fa-solid fa-trash-can"></i></button>
-                        </div>
-                    </div>`;
-                });
-                document.getElementById('list-riwayat-darurat').innerHTML = htmlDD;
+                let htmlKas = ''; data.riwayatArusKas.forEach(item => { htmlKas += `<div class="list-group-item p-3"><div class="d-flex justify-content-between align-items-center"><div><small class="text-muted">${item.tanggal} • ${item.kategori}</small><h6 class="mb-0 fw-bold">${item.keterangan}</h6><h6 class="${item.jenis === 'Pemasukan' ? 'text-success' : 'text-danger'} fw-bold mb-0 mt-1">${item.jenis === 'Pemasukan' ? '+' : '-'} Rp ${formatRupiah(item.nominal)}</h6></div><button class="btn-delete-sm" onclick="hapusData('${item.id}', 'AK')"><i class="fa-solid fa-trash-can"></i></button></div></div>`; }); document.getElementById('list-riwayat-kas').innerHTML = htmlKas;
+                let htmlDD = ''; data.riwayatDarurat.forEach(item => { htmlDD += `<div class="list-group-item p-3"><div class="d-flex justify-content-between align-items-center"><div><small class="text-muted">${item.tanggal} • ${item.jenis}</small><h6 class="mb-0 fw-bold">${item.keterangan}</h6><h6 class="${item.jenis === 'Setor' ? 'text-success' : 'text-danger'} fw-bold mb-0 mt-1">Rp ${formatRupiah(item.nominal)}</h6></div><button class="btn-delete-sm" onclick="hapusData('${item.id}', 'DD')"><i class="fa-solid fa-trash-can"></i></button></div></div>`; }); document.getElementById('list-riwayat-darurat').innerHTML = htmlDD;
             });
         }
 
-        // FUNGSI RENDER CHART JS
-        function renderChart(pemasukan, pengeluaran) {
+        function filterDashboard() {
+            if (!globalDataForPDF) return;
+            const p = document.getElementById('filter-periode').value, now = new Date();
+            let pem = 0, peng = 0, label = p === 'harian' ? 'Hari Ini' : (p === 'bulanan' ? 'Bulan Ini' : (p === 'tahunan' ? 'Tahun Ini' : 'Semua'));
+            document.getElementById('label-pem').innerText = label; document.getElementById('label-peng').innerText = label;
+            
+            globalDataForPDF.riwayatArusKas.forEach(i => {
+                const parts = i.tanggal.split('/'); const d = new Date(parts[2], parts[1]-1, parts[0]); let m = false;
+                if(p==='semua') m=true; else if(p==='harian') m=(d.toDateString()===now.toDateString()); else if(p==='bulanan') m=(d.getMonth()===now.getMonth()&&d.getFullYear()===now.getFullYear()); else if(p==='tahunan') m=(d.getFullYear()===now.getFullYear());
+                if(m) { if(i.jenis==='Pemasukan') pem+=i.nominal; if(i.jenis==='Pengeluaran') peng+=i.nominal; }
+            });
+            document.getElementById('filter-pemasukan').innerText = formatRupiah(pem); document.getElementById('filter-pengeluaran').innerText = formatRupiah(peng);
+            renderChart(pem, peng);
+        }
+
+        function renderChart(pem, peng) {
             const ctx = document.getElementById('kasChart').getContext('2d');
-            if (myChart != null) { myChart.destroy(); }
-            let dataArr = [pemasukan, pengeluaran];
-            let colors = ['#2e7d32', '#e74c3c'];
-            if(pemasukan === 0 && pengeluaran === 0) { dataArr = [1]; colors = ['#e0e0e0']; }
-            myChart = new Chart(ctx, {
-                type: 'doughnut',
-                data: {
-                    labels: (pemasukan === 0 && pengeluaran === 0) ? ['Belum ada transaksi'] : ['Pemasukan', 'Pengeluaran'],
-                    datasets: [{ data: dataArr, backgroundColor: colors, borderWidth: 0 }]
-                },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
-            });
+            if(myChart) myChart.destroy();
+            let d = [pem, peng], c = ['#2e7d32', '#e74c3c'];
+            if(pem===0 && peng===0) { d=[1]; c=['#e0e0e0']; }
+            myChart = new Chart(ctx, { type: 'doughnut', data: { labels: pem===0&&peng===0 ? ['Tidak Ada Data'] : ['Pemasukan', 'Pengeluaran'], datasets: [{ data: d, backgroundColor: c, borderWidth: 0 }] }, options: { responsive: true, maintainAspectRatio: false, cutout: '70%', plugins: { legend: { position: 'bottom' } } } });
         }
 
-        // GENERATOR PDF FORMAL (TETAP SAMA DENGAN VERSI SEBELUMNYA)
         function downloadPDF() {
             if(!globalDataForPDF) { Swal.fire('Tunggu', 'Data sedang dimuat...', 'info'); return; }
-            
-            Swal.fire({
-                title: 'Buat Laporan PDF?',
-                text: "Sistem akan merender laporan berwarna dengan Kop Surat resmi.",
-                icon: 'question', showCancelButton: true, confirmButtonColor: '#2e7d32', confirmButtonText: 'Generate PDF'
-            }).then((result) => {
+            Swal.fire({ title: 'Generate Laporan?', icon: 'info', showCancelButton: true, confirmButtonColor: '#2e7d32', confirmButtonText: 'PDF' }).then((result) => {
                 if (result.isConfirmed) {
                     showLoader();
-                    
-                    let barisKas = '';
-                    let arrKas = [...globalDataForPDF.riwayatArusKas].reverse();
-                    if(arrKas.length === 0) barisKas = '<tr><td colspan="5" style="text-align:center; padding:10px; border:1px solid #2e7d32; color: #555;">Tidak ada transaksi</td></tr>';
-                    arrKas.forEach(item => {
-                        let p = item.jenis === 'Pemasukan' ? formatRupiah(item.nominal) : '-';
-                        let k = item.jenis === 'Pengeluaran' ? formatRupiah(item.nominal) : '-';
-                        barisKas += `
-                        <tr>
-                            <td style="border: 1px solid #2e7d32; padding: 8px; text-align: center; color: #333;">${item.tanggal}</td>
-                            <td style="border: 1px solid #2e7d32; padding: 8px; color: #333;">${item.kategori}</td>
-                            <td style="border: 1px solid #2e7d32; padding: 8px; color: #333;">${item.keterangan}</td>
-                            <td style="border: 1px solid #2e7d32; padding: 8px; text-align: right; color: #2e7d32; font-weight: bold;">${p}</td>
-                            <td style="border: 1px solid #2e7d32; padding: 8px; text-align: right; color: #e74c3c; font-weight: bold;">${k}</td>
-                        </tr>`;
-                    });
-
-                    let barisDD = '';
-                    let arrDD = [...globalDataForPDF.riwayatDarurat].reverse();
-                    if(arrDD.length === 0) barisDD = '<tr><td colspan="4" style="text-align:center; padding:10px; border:1px solid #fbc02d; color: #555;">Tidak ada transaksi</td></tr>';
-                    arrDD.forEach(item => {
-                        let s = item.jenis === 'Setor' ? formatRupiah(item.nominal) : '-';
-                        let t = item.jenis === 'Tarik' ? formatRupiah(item.nominal) : '-';
-                        barisDD += `
-                        <tr>
-                            <td style="border: 1px solid #fbc02d; padding: 8px; text-align: center; color: #333;">${item.tanggal}</td>
-                            <td style="border: 1px solid #fbc02d; padding: 8px; color: #333;">${item.keterangan}</td>
-                            <td style="border: 1px solid #fbc02d; padding: 8px; text-align: right; color: #2e7d32; font-weight: bold;">${s}</td>
-                            <td style="border: 1px solid #fbc02d; padding: 8px; text-align: right; color: #e74c3c; font-weight: bold;">${t}</td>
-                        </tr>`;
-                    });
-
-                    const htmlString = `
-                    <div style="font-family: 'Arial', sans-serif; padding: 25px; font-size: 13px; background-color: #ffffff;">
-                        <table style="width: 100%; border-bottom: 4px double #1b5e20; padding-bottom: 15px; margin-bottom: 25px;">
-                            <tr>
-                                <td style="width: 15%; text-align: center; vertical-align: middle;">
-                                    <div style="width: 70px; height: 70px; background-color: #2e7d32; border-radius: 50%; color: white; display: inline-block; line-height: 65px; font-size: 24px; font-weight: bold; border: 3px solid #fbc02d;">KWT</div>
-                                </td>
-                                <td style="width: 85%; text-align: center; vertical-align: middle; padding-right: 15%;">
-                                    <h1 style="margin: 0; font-size: 22px; color: #1b5e20; text-transform: uppercase; font-weight: 800; letter-spacing: 1px;">KELOMPOK WANITA TANI (KWT) PROKLIM</h1>
-                                    <h2 style="margin: 6px 0 0 0; font-size: 14px; color: #424242;">Laporan Terpadu Arus Kas & Dana Darurat</h2>
-                                    <p style="margin: 6px 0 0 0; font-size: 11px; color: #757575;">Dicetak otomatis pada: ${new Date().toLocaleString('id-ID')}</p>
-                                </td>
-                            </tr>
-                        </table>
-                        <div style="margin-bottom: 25px;">
-                            <h4 style="margin-bottom: 10px; font-size: 14px; color: #1b5e20; border-left: 4px solid #1b5e20; padding-left: 8px;">A. REKAPITULASI SALDO AKHIR</h4>
-                            <table style="width: 60%; border-collapse: collapse;">
-                                <tr>
-                                    <td style="border: 1px solid #a5d6a7; padding: 8px; background-color: #e8f5e9; font-weight: bold; color: #2e7d32;">Saldo Kas Operasional</td>
-                                    <td style="border: 1px solid #a5d6a7; padding: 8px; text-align: right; font-weight: bold; font-size: 15px; color: #1b5e20;">Rp ${formatRupiah(globalDataForPDF.saldoKas)}</td>
-                                </tr>
-                                <tr>
-                                    <td style="border: 1px solid #fff59d; padding: 8px; background-color: #fffde7; font-weight: bold; color: #f57f17;">Total Dana Darurat</td>
-                                    <td style="border: 1px solid #fff59d; padding: 8px; text-align: right; font-weight: bold; font-size: 15px; color: #e65100;">Rp ${formatRupiah(globalDataForPDF.saldoDarurat)}</td>
-                                </tr>
-                            </table>
-                        </div>
-                        <div style="margin-bottom: 25px;">
-                            <h4 style="margin-bottom: 10px; font-size: 14px; color: #1b5e20; border-left: 4px solid #1b5e20; padding-left: 8px;">B. RINCIAN ARUS KAS (OPERASIONAL)</h4>
-                            <table style="width: 100%; border-collapse: collapse;">
-                                <thead>
-                                    <tr>
-                                        <th style="border: 1px solid #2e7d32; padding: 8px; background-color: #2e7d32; color: white; text-align: center;">Tanggal</th>
-                                        <th style="border: 1px solid #2e7d32; padding: 8px; background-color: #2e7d32; color: white; text-align: center;">Kategori</th>
-                                        <th style="border: 1px solid #2e7d32; padding: 8px; background-color: #2e7d32; color: white; text-align: center;">Keterangan</th>
-                                        <th style="border: 1px solid #2e7d32; padding: 8px; background-color: #2e7d32; color: white; text-align: center;">Pemasukan (Rp)</th>
-                                        <th style="border: 1px solid #2e7d32; padding: 8px; background-color: #2e7d32; color: white; text-align: center;">Pengeluaran (Rp)</th>
-                                    </tr>
-                                </thead>
-                                <tbody>${barisKas}</tbody>
-                            </table>
-                        </div>
-                        <div style="margin-bottom: 35px;">
-                            <h4 style="margin-bottom: 10px; font-size: 14px; color: #f57f17; border-left: 4px solid #f57f17; padding-left: 8px;">C. RINCIAN DANA DARURAT</h4>
-                            <table style="width: 100%; border-collapse: collapse;">
-                                <thead>
-                                    <tr>
-                                        <th style="border: 1px solid #fbc02d; padding: 8px; background-color: #fbc02d; color: #333; text-align: center;">Tanggal</th>
-                                        <th style="border: 1px solid #fbc02d; padding: 8px; background-color: #fbc02d; color: #333; text-align: center;">Keterangan / Tujuan</th>
-                                        <th style="border: 1px solid #fbc02d; padding: 8px; background-color: #fbc02d; color: #333; text-align: center;">Setor Masuk (Rp)</th>
-                                        <th style="border: 1px solid #fbc02d; padding: 8px; background-color: #fbc02d; color: #333; text-align: center;">Tarik Keluar (Rp)</th>
-                                    </tr>
-                                </thead>
-                                <tbody>${barisDD}</tbody>
-                            </table>
-                        </div>
-                        <table style="width: 100%; border: none; margin-top: 40px; color: #333;">
-                            <tr>
-                                <td style="width: 50%; text-align: center;">Mengetahui,<br><b style="color: #1b5e20;">Ketua KWT Proklim</b><br><br><br><br>(...................................)</td>
-                                <td style="width: 50%; text-align: center;">Dibuat Oleh,<br><b style="color: #1b5e20;">Bendahara KWT</b><br><br><br><br>(...................................)</td>
-                            </tr>
-                        </table>
+                    let barisKas = ''; [...globalDataForPDF.riwayatArusKas].reverse().forEach(item => { barisKas += `<tr><td>${item.tanggal}</td><td>${item.kategori}</td><td>${item.keterangan}</td><td style="text-align:right;">${item.jenis === 'Pemasukan' ? formatRupiah(item.nominal) : '-'}</td><td style="text-align:right;">${item.jenis === 'Pengeluaran' ? formatRupiah(item.nominal) : '-'}</td></tr>`; });
+                    let barisDD = ''; [...globalDataForPDF.riwayatDarurat].reverse().forEach(item => { barisDD += `<tr><td>${item.tanggal}</td><td>${item.keterangan}</td><td style="text-align:right;">${item.jenis === 'Setor' ? formatRupiah(item.nominal) : '-'}</td><td style="text-align:right;">${item.jenis === 'Tarik' ? formatRupiah(item.nominal) : '-'}</td></tr>`; });
+                    const html = `
+                    <div style="font-family: Arial; padding: 20px;">
+                        <h2 style="text-align:center; color:#2e7d32;">LAPORAN KEUANGAN KWT PROKLIM</h2>
+                        <h4 style="border-bottom: 2px solid #2e7d32;">A. Saldo</h4>
+                        <p>Kas: Rp ${formatRupiah(globalDataForPDF.saldoKas)} | Darurat: Rp ${formatRupiah(globalDataForPDF.saldoDarurat)}</p>
+                        <h4 style="border-bottom: 2px solid #2e7d32;">B. Arus Kas</h4>
+                        <table style="width:100%; border-collapse:collapse;"><thead><tr style="background:#eee;"><th>Tanggal</th><th>Kategori</th><th>Keterangan</th><th>Masuk</th><th>Keluar</th></tr></thead><tbody>${barisKas}</tbody></table>
+                        <h4 style="border-bottom: 2px solid #2e7d32; margin-top:20px;">C. Dana Darurat</h4>
+                        <table style="width:100%; border-collapse:collapse;"><thead><tr style="background:#eee;"><th>Tanggal</th><th>Keterangan</th><th>Setor</th><th>Tarik</th></tr></thead><tbody>${barisDD}</tbody></table>
                     </div>`;
-
-                    const opt = { margin: 10, filename: 'Laporan_Resmi_KWT_Proklim.pdf', image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2, useCORS: true }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' } };
-                    html2pdf().set(opt).from(htmlString).save().then(() => { hideLoader(); Swal.fire('Selesai!', 'Laporan PDF Berwarna dengan Kop Surat telah berhasil dicetak.', 'success'); });
+                    html2pdf().from(html).save('Laporan_KWT.pdf').then(() => hideLoader());
                 }
             });
         }

@@ -93,9 +93,10 @@
         <div class="container mt-4">
             <!-- DASHBOARD -->
             <div id="view-dashboard" class="view-section active">
-                <button onclick="downloadPDF()" class="btn btn-dark w-100 mb-4 py-2" style="border-radius: 12px; font-weight: 500; box-shadow: 0 4px 10px rgba(0,0,0,0.2);">
-                    <i class="fa-solid fa-file-pdf text-danger me-2"></i> Download Laporan Keuangan (PDF)
-                </button>
+                <div class="row g-2 mb-4">
+                    <div class="col-6"><button onclick="downloadPDF()" class="btn btn-dark w-100 py-2" style="border-radius: 12px; font-weight: 500; box-shadow: 0 4px 10px rgba(0,0,0,0.2);"><i class="fa-solid fa-file-pdf text-danger me-2"></i>Laporan PDF</button></div>
+                    <div class="col-6"><button onclick="exportCSV()" class="btn btn-success w-100 py-2" style="border-radius: 12px; font-weight: 500; box-shadow: 0 4px 10px rgba(0,0,0,0.15);"><i class="fa-solid fa-file-csv me-2"></i>Export Excel</button></div>
+                </div>
 
                 <div class="row g-3 mb-4">
                     <div class="col-6">
@@ -128,6 +129,20 @@
                 <div class="card mb-4 p-3 shadow-sm">
                     <div class="chart-container" style="position: relative; height: 220px; width: 100%;">
                         <canvas id="kasChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="card mb-4 p-3 shadow-sm">
+                    <h6 class="fw-bold mb-3 text-secondary border-bottom pb-2"><i class="fa-solid fa-chart-line me-2"></i>Tren 6 Bulan Terakhir</h6>
+                    <div class="chart-container" style="position: relative; height: 220px; width: 100%;">
+                        <canvas id="trendChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="card mb-4 p-3 shadow-sm">
+                    <h6 class="fw-bold mb-3 text-secondary border-bottom pb-2"><i class="fa-solid fa-chart-bar me-2"></i>Pengeluaran Per Kategori</h6>
+                    <div class="chart-container" style="position: relative; height: 220px; width: 100%;">
+                        <canvas id="kategoriChart"></canvas>
                     </div>
                 </div>
 
@@ -166,7 +181,16 @@
                             </form>
                         </div>
                     </div>
-                    <div class="tab-pane fade" id="kas-riwayat"><div class="card p-0 overflow-hidden"><div class="list-group list-group-flush" id="list-riwayat-kas"></div></div></div>
+                    <div class="tab-pane fade" id="kas-riwayat">
+                        <div class="card p-3 mb-2">
+                            <div class="row g-2">
+                                <div class="col-12"><input type="text" id="search-kas" class="form-control form-control-sm" placeholder="🔍 Cari keterangan/kategori..." oninput="filterRiwayatKas()"></div>
+                                <div class="col-6"><input type="date" id="filter-kas-dari" class="form-control form-control-sm" onchange="filterRiwayatKas()"></div>
+                                <div class="col-6"><input type="date" id="filter-kas-sampai" class="form-control form-control-sm" onchange="filterRiwayatKas()"></div>
+                            </div>
+                        </div>
+                        <div class="card p-0 overflow-hidden"><div class="list-group list-group-flush" id="list-riwayat-kas"></div></div>
+                    </div>
                 </div>
             </div>
 
@@ -212,7 +236,10 @@
                             </form>
                         </div>
                     </div>
-                    <div class="tab-pane fade" id="darurat-riwayat"><div class="card p-0 overflow-hidden"><div class="list-group list-group-flush" id="list-riwayat-darurat"></div></div></div>
+                    <div class="tab-pane fade" id="darurat-riwayat">
+                        <div class="card p-3 mb-2"><input type="text" id="search-dd" class="form-control form-control-sm" placeholder="🔍 Cari keterangan..." oninput="filterRiwayatDD()"></div>
+                        <div class="card p-0 overflow-hidden"><div class="list-group list-group-flush" id="list-riwayat-darurat"></div></div>
+                    </div>
                 </div>
             </div>
             <!-- ARSIP DIGITAL -->
@@ -277,7 +304,7 @@
         
         const formatRupiah = (angka) => new Intl.NumberFormat('id-ID').format(angka);
         let globalDataForPDF = null;
-        let myChart = null;
+        let myChart = null, myTrendChart = null, myKategoriChart = null;
 
         // FUNGSI JEMBATAN KE API GOOGLE APPS SCRIPT
         async function fetchAPI(action, params = {}) {
@@ -471,35 +498,13 @@
 
                 // Render Chart + Tabel via filter
                 filterDashboard();
+                renderTrendChart(data.riwayatArusKas);
 
-                // Render Kas
-                let htmlKas = '';
-                if(data.riwayatArusKas.length === 0) htmlKas = '<div class="p-4 text-center text-muted">Belum ada data</div>';
-                data.riwayatArusKas.forEach(item => {
-                    let sign = item.jenis === 'Pemasukan' ? '+' : '-';
-                    htmlKas += `
-                    <div class="list-group-item p-3 border-bottom">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div><small class="text-muted">${item.tanggal} • ${item.kategori}</small><h6 class="mb-0 fw-bold">${item.keterangan}</h6>${item.jumlah ? '<small class="text-secondary"><i class="fa-solid fa-box-open"></i> '+item.jumlah+' '+item.satuan+'</small>' : ''}<h6 class="${item.jenis === 'Pemasukan' ? 'text-success' : 'text-danger'} fw-bold mb-0 mt-1">${sign} Rp ${formatRupiah(item.nominal)}</h6></div>
-                            <button class="btn-delete-sm" onclick="hapusData('${item.id}', 'AK')" title="Hapus"><i class="fa-solid fa-trash-can"></i></button>
-                        </div>
-                    </div>`;
-                });
-                document.getElementById('list-riwayat-kas').innerHTML = htmlKas;
+                // Render Kas via filter
+                filterRiwayatKas();
 
-                // Render DD
-                let htmlDD = '';
-                if(data.riwayatDarurat.length === 0) htmlDD = '<div class="p-4 text-center text-muted">Belum ada data</div>';
-                data.riwayatDarurat.forEach(item => {
-                    htmlDD += `
-                    <div class="list-group-item p-3 border-bottom">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div><small class="text-muted">${item.tanggal} • ${item.jenis} Dana</small><h6 class="mb-0 fw-bold">${item.keterangan}</h6><h6 class="${item.jenis === 'Setor' ? 'text-success' : 'text-danger'} fw-bold mb-0 mt-1">Rp ${formatRupiah(item.nominal)}</h6></div>
-                            <button class="btn-delete-sm" onclick="hapusData('${item.id}', 'DD')" title="Hapus"><i class="fa-solid fa-trash-can"></i></button>
-                        </div>
-                    </div>`;
-                });
-                document.getElementById('list-riwayat-darurat').innerHTML = htmlDD;
+                // Render DD via filter
+                filterRiwayatDD();
 
                 // Render Arsip
                 let htmlARS = '';
@@ -574,6 +579,9 @@
                 </tr>`;
             });
             document.getElementById('tbody-kas-dashboard').innerHTML = rows;
+
+            // Render Kategori Chart (filtered)
+            renderKategoriChart(filtered);
         }
 
         function renderChart(pemasukan, pengeluaran) {
@@ -590,6 +598,107 @@
                 },
                 options: { responsive: true, maintainAspectRatio: false, cutout: '70%', plugins: { legend: { position: 'bottom' } } }
             });
+        }
+
+        // TREN 6 BULAN (LINE CHART)
+        function renderTrendChart(kasData) {
+            const ctx = document.getElementById('trendChart').getContext('2d');
+            if (myTrendChart) myTrendChart.destroy();
+            const now = new Date(); const labels = [], pemArr = [], pengArr = [];
+            for(let i = 5; i >= 0; i--) {
+                const m = new Date(now.getFullYear(), now.getMonth() - i, 1);
+                labels.push(m.toLocaleString('id-ID', { month: 'short', year: '2-digit' }));
+                let p = 0, k = 0;
+                kasData.forEach(item => {
+                    const d = parseDateString(item.tanggal);
+                    if(d.getMonth() === m.getMonth() && d.getFullYear() === m.getFullYear()) {
+                        if(item.jenis === 'Pemasukan') p += item.nominal;
+                        if(item.jenis === 'Pengeluaran') k += item.nominal;
+                    }
+                });
+                pemArr.push(p); pengArr.push(k);
+            }
+            myTrendChart = new Chart(ctx, {
+                type: 'line',
+                data: { labels, datasets: [
+                    { label: 'Pemasukan', data: pemArr, borderColor: '#2e7d32', backgroundColor: 'rgba(46,125,50,0.1)', fill: true, tension: 0.4, pointRadius: 4 },
+                    { label: 'Pengeluaran', data: pengArr, borderColor: '#e74c3c', backgroundColor: 'rgba(231,76,60,0.1)', fill: true, tension: 0.4, pointRadius: 4 }
+                ]},
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { usePointStyle: true } } }, scales: { y: { beginAtZero: true, ticks: { callback: v => 'Rp ' + formatRupiah(v) } } } }
+            });
+        }
+
+        // KATEGORI PENGELUARAN (PIE CHART)
+        function renderKategoriChart(filteredData) {
+            const ctx = document.getElementById('kategoriChart').getContext('2d');
+            if (myKategoriChart) myKategoriChart.destroy();
+            const katMap = {};
+            filteredData.forEach(i => { if(i.jenis === 'Pengeluaran') katMap[i.kategori] = (katMap[i.kategori] || 0) + i.nominal; });
+            const labels = Object.keys(katMap), values = Object.values(katMap);
+            const colors = ['#e74c3c','#f39c12','#3498db','#9b59b6','#1abc9c','#e67e22','#2c3e50','#d35400'];
+            if(labels.length === 0) {
+                myKategoriChart = new Chart(ctx, { type: 'doughnut', data: { labels: ['Belum ada pengeluaran'], datasets: [{ data: [1], backgroundColor: ['#e0e0e0'], borderWidth: 0 }] }, options: { responsive: true, maintainAspectRatio: false, cutout: '60%', plugins: { legend: { position: 'bottom' } } } });
+                return;
+            }
+            myKategoriChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: { labels, datasets: [{ data: values, backgroundColor: colors.slice(0, labels.length), borderWidth: 2, borderColor: '#fff' }] },
+                options: { responsive: true, maintainAspectRatio: false, cutout: '60%', plugins: { legend: { position: 'bottom', labels: { usePointStyle: true } } } }
+            });
+        }
+
+        // SEARCH & FILTER RIWAYAT ARUS KAS
+        function filterRiwayatKas() {
+            if(!globalDataForPDF) return;
+            const q = (document.getElementById('search-kas').value || '').toLowerCase();
+            const dari = document.getElementById('filter-kas-dari').value;
+            const sampai = document.getElementById('filter-kas-sampai').value;
+            let html = '';
+            let count = 0;
+            globalDataForPDF.riwayatArusKas.forEach(item => {
+                const text = (item.keterangan + ' ' + item.kategori).toLowerCase();
+                if(q && !text.includes(q)) return;
+                if(dari || sampai) {
+                    const d = parseDateString(item.tanggal);
+                    if(dari && d < new Date(dari)) return;
+                    if(sampai) { const s = new Date(sampai); s.setHours(23,59,59); if(d > s) return; }
+                }
+                count++;
+                let sign = item.jenis === 'Pemasukan' ? '+' : '-';
+                html += `<div class="list-group-item p-3 border-bottom"><div class="d-flex justify-content-between align-items-center"><div><small class="text-muted">${item.tanggal} • ${item.kategori}</small><h6 class="mb-0 fw-bold">${item.keterangan}</h6>${item.jumlah ? '<small class="text-secondary"><i class="fa-solid fa-box-open"></i> '+item.jumlah+' '+item.satuan+'</small>' : ''}<h6 class="${item.jenis === 'Pemasukan' ? 'text-success' : 'text-danger'} fw-bold mb-0 mt-1">${sign} Rp ${formatRupiah(item.nominal)}</h6></div><button class="btn-delete-sm" onclick="hapusData('${item.id}', 'AK')"><i class="fa-solid fa-trash-can"></i></button></div></div>`;
+            });
+            if(!count) html = '<div class="p-4 text-center text-muted">Tidak ditemukan</div>';
+            document.getElementById('list-riwayat-kas').innerHTML = html;
+        }
+
+        // SEARCH RIWAYAT DANA DARURAT
+        function filterRiwayatDD() {
+            if(!globalDataForPDF) return;
+            const q = (document.getElementById('search-dd').value || '').toLowerCase();
+            let html = '', count = 0;
+            globalDataForPDF.riwayatDarurat.forEach(item => {
+                if(q && !item.keterangan.toLowerCase().includes(q)) return;
+                count++;
+                html += `<div class="list-group-item p-3 border-bottom"><div class="d-flex justify-content-between align-items-center"><div><small class="text-muted">${item.tanggal} • ${item.jenis} Dana</small><h6 class="mb-0 fw-bold">${item.keterangan}</h6><h6 class="${item.jenis === 'Setor' ? 'text-success' : 'text-danger'} fw-bold mb-0 mt-1">Rp ${formatRupiah(item.nominal)}</h6></div><button class="btn-delete-sm" onclick="hapusData('${item.id}', 'DD')"><i class="fa-solid fa-trash-can"></i></button></div></div>`;
+            });
+            if(!count) html = '<div class="p-4 text-center text-muted">Tidak ditemukan</div>';
+            document.getElementById('list-riwayat-darurat').innerHTML = html;
+        }
+
+        // EXPORT CSV / EXCEL
+        function exportCSV() {
+            if(!globalDataForPDF) { Swal.fire('Tunggu','Data sedang dimuat...','info'); return; }
+            let csv = '\uFEFFNo,Tanggal,Jenis,Kategori,Keterangan,Jumlah,Satuan,Nominal\n';
+            const arr = [...globalDataForPDF.riwayatArusKas].reverse();
+            arr.forEach((item, i) => {
+                csv += `${i+1},"${item.tanggal}","${item.jenis}","${item.kategori}","${item.keterangan}","${item.jumlah||''}","${item.satuan||''}",${item.nominal}\n`;
+            });
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = 'Arus_Kas_KWT_' + new Date().toISOString().slice(0,10) + '.csv';
+            link.click();
+            Swal.fire({icon:'success', title:'CSV Terdownload!', text:'Buka dengan Excel untuk melihat data.', timer:2000, showConfirmButton:false});
         }
 
         // ==========================================

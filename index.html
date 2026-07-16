@@ -44,6 +44,12 @@
         .scan-preview { width: 100%; height: 200px; border: 2px dashed #2e7d32; border-radius: 12px; display: flex; align-items: center; justify-content: center; background-color: #e8f5e9; overflow: hidden; position: relative; margin-bottom: 15px;}
         .scan-preview img { width: 100%; height: 100%; object-fit: contain; display: none; }
         .scan-placeholder { text-align: center; color: #2e7d32; cursor: pointer; }
+        .tabel-kas { width: 100%; border-collapse: collapse; font-size: 0.78rem; }
+        .tabel-kas th { background-color: #2e7d32; color: white; padding: 8px 6px; text-align: center; white-space: nowrap; position: sticky; top: 0; }
+        .tabel-kas td { padding: 7px 6px; border-bottom: 1px solid #eee; vertical-align: middle; }
+        .tabel-kas tr:nth-child(even) { background-color: #f9f9f9; }
+        .tabel-scroll { max-height: 350px; overflow-y: auto; border-radius: 12px; border: 1px solid #e0e0e0; }
+        .dd-info-card { background: linear-gradient(135deg, #fff8e1, #fffde7); border: 1px solid #ffe082; border-radius: 14px; padding: 16px; margin-bottom: 15px; }
         .input-password-wrap { position: relative; }
         .input-password-wrap .form-control { padding-right: 45px; }
         .btn-toggle-pw { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; color: #888; cursor: pointer; font-size: 1.1rem; }
@@ -126,8 +132,13 @@
                 </div>
 
                 <div class="card mb-4 p-3">
-                    <h6 class="fw-bold mb-3 text-secondary border-bottom pb-2"><i class="fa-solid fa-clock-rotate-left me-2"></i>Aktivitas Terkini</h6>
-                    <div id="dashboard-history" class="list-group list-group-flush"></div>
+                    <h6 class="fw-bold mb-3 text-secondary border-bottom pb-2"><i class="fa-solid fa-table-list me-2"></i>Rincian Arus Kas</h6>
+                    <div class="tabel-scroll" id="tabel-kas-wrapper">
+                        <table class="tabel-kas">
+                            <thead><tr><th>No</th><th>Hari / Tanggal</th><th>No. Bukti</th><th>Keterangan</th><th>Pemasukan</th><th>Pengeluaran</th><th>Saldo</th></tr></thead>
+                            <tbody id="tbody-kas-dashboard"></tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
 
@@ -162,19 +173,42 @@
             <!-- DANA DARURAT -->
             <div id="view-danadarurat" class="view-section">
                 <h5 class="fw-bold text-warning mb-3"><i class="fa-solid fa-piggy-bank"></i> Kelola Dana Darurat</h5>
-                <ul class="nav nav-pills nav-fill mb-3" id="pills-tab-darurat" role="tablist">
-                    <li class="nav-item-tab" role="presentation"><button class="nav-link active w-100" data-bs-toggle="pill" data-bs-target="#darurat-input" type="button">Setor/Tarik</button></li>
-                    <li class="nav-item-tab ms-2" role="presentation"><button class="nav-link w-100" data-bs-toggle="pill" data-bs-target="#darurat-riwayat" type="button">Riwayat</button></li>
+                <ul class="nav nav-pills nav-fill mb-3">
+                    <li class="nav-item-tab"><button class="nav-link active w-100" data-bs-toggle="pill" data-bs-target="#darurat-alokasi">Alokasi</button></li>
+                    <li class="nav-item-tab ms-2"><button class="nav-link w-100" data-bs-toggle="pill" data-bs-target="#darurat-tarik">Tarik Dana</button></li>
+                    <li class="nav-item-tab ms-2"><button class="nav-link w-100" data-bs-toggle="pill" data-bs-target="#darurat-riwayat">Riwayat</button></li>
                 </ul>
                 <div class="tab-content">
-                    <div class="tab-pane fade show active" id="darurat-input">
+                    <div class="tab-pane fade show active" id="darurat-alokasi">
+                        <div class="dd-info-card">
+                            <div class="text-center mb-2"><i class="fa-solid fa-chart-line text-warning fa-2x"></i></div>
+                            <h6 class="text-center fw-bold text-dark mb-1">Pemasukan Bulan Ini</h6>
+                            <h4 id="dd-pemasukan-bulan" class="text-center text-success fw-bold mb-0">Rp 0</h4>
+                        </div>
                         <div class="card p-3 border-warning border-opacity-50">
-                            <form id="formDanaDarurat" onsubmit="submitDanaDarurat(event)">
-                                <div class="mb-3"><label class="form-label text-muted small">Tanggal</label><input type="date" id="dd_tanggal" class="form-control" required></div>
-                                <div class="mb-3"><label class="form-label text-muted small">Aksi</label><select id="dd_jenis" class="form-select" required><option value="Setor">Setor Dana (+)</option><option value="Tarik">Tarik Dana (-)</option></select></div>
-                                <div class="mb-3"><label class="form-label text-muted small">Tujuan/Alasan</label><input type="text" id="dd_keterangan" class="form-control" required></div>
-                                <div class="mb-4"><label class="form-label text-muted small">Nominal (Rp)</label><input type="text" id="dd_nominal" class="form-control fw-bold nominal-input" required placeholder="Cth: 120.000" oninput="formatNominalInput(this)"></div>
-                                <button type="submit" class="btn btn-warning w-100 py-2 fw-bold text-dark">Proses Dana</button>
+                            <form id="formAlokasiDD" onsubmit="submitAlokasiDD(event)">
+                                <div class="mb-3"><label class="form-label text-muted small">Pilih Alokasi Dana Darurat</label>
+                                    <select id="dd_persen" class="form-select fw-bold" required onchange="hitungAlokasi()">
+                                        <option value="">-- Pilih Persen --</option>
+                                        <option value="30">30% dari Pemasukan</option><option value="20">20% dari Pemasukan</option>
+                                        <option value="10">10% dari Pemasukan</option><option value="5">5% dari Pemasukan</option>
+                                    </select>
+                                </div>
+                                <div class="card bg-white p-3 text-center mb-3 shadow-sm border-warning border-2">
+                                    <small class="text-muted">Nominal Alokasi</small>
+                                    <h4 id="dd-nominal-alokasi" class="fw-bold text-warning mb-0">Rp 0</h4>
+                                </div>
+                                <button type="submit" class="btn btn-warning w-100 py-2 fw-bold text-dark"><i class="fa-solid fa-vault me-2"></i>Alokasikan ke Dana Darurat</button>
+                            </form>
+                        </div>
+                    </div>
+                    <div class="tab-pane fade" id="darurat-tarik">
+                        <div class="card p-3 border-danger border-opacity-25">
+                            <form id="formTarikDD" onsubmit="submitTarikDD(event)">
+                                <div class="mb-3"><label class="form-label text-muted small">Tanggal</label><input type="date" id="dd_tarik_tanggal" class="form-control" required></div>
+                                <div class="mb-3"><label class="form-label text-muted small">Alasan Penarikan</label><input type="text" id="dd_tarik_keterangan" class="form-control" required placeholder="Cth: Kebutuhan darurat banjir"></div>
+                                <div class="mb-4"><label class="form-label text-muted small">Nominal Tarik (Rp)</label><input type="text" id="dd_tarik_nominal" class="form-control fw-bold nominal-input" required placeholder="Cth: 120.000" oninput="formatNominalInput(this)"></div>
+                                <button type="submit" class="btn btn-outline-danger w-100 py-2 fw-bold"><i class="fa-solid fa-arrow-right-from-bracket me-2"></i>Tarik Dana Darurat</button>
                             </form>
                         </div>
                     </div>
@@ -268,7 +302,7 @@
                 syncData();
             }
             document.getElementById('ak_tanggal').valueAsDate = new Date();
-            document.getElementById('dd_tanggal').valueAsDate = new Date();
+            document.getElementById('dd_tarik_tanggal').valueAsDate = new Date();
             document.getElementById('arsip_tanggal').valueAsDate = new Date();
             updateKategoriKas();
         };
@@ -349,22 +383,53 @@
             });
         }
 
-        function submitDanaDarurat(e) {
+        let pemasukanBulanIni = 0;
+
+        function hitungAlokasi() {
+            const persen = Number(document.getElementById('dd_persen').value) || 0;
+            const nominal = Math.round(pemasukanBulanIni * persen / 100);
+            document.getElementById('dd-nominal-alokasi').innerText = 'Rp ' + formatRupiah(nominal);
+        }
+
+        function submitAlokasiDD(e) {
             e.preventDefault();
-            const jenis = document.getElementById('dd_jenis').value;
-            Swal.fire({ title: 'Proses Dana Darurat?', text: "Pastikan nominal benar.", icon: 'info', showCancelButton: true, confirmButtonColor: '#fbc02d', confirmButtonText: 'Ya, Proses'
+            const persen = Number(document.getElementById('dd_persen').value);
+            if(!persen) { Swal.fire('Error','Pilih persen alokasi','error'); return; }
+            const nominal = Math.round(pemasukanBulanIni * persen / 100);
+            if(nominal < 1) { Swal.fire('Info','Pemasukan bulan ini masih Rp 0','info'); return; }
+            const bulan = new Date().toLocaleString('id-ID', { month: 'long', year: 'numeric' });
+            Swal.fire({ title: `Alokasi ${persen}% ke Dana Darurat?`, text: `Nominal: Rp ${formatRupiah(nominal)}`, icon: 'info', showCancelButton: true, confirmButtonColor: '#fbc02d', confirmButtonText: 'Ya, Alokasikan'
             }).then((result) => {
                 if (result.isConfirmed) {
                     showLoader();
-                    const nom = getNominalValue('dd_nominal');
-                    if(!nom || nom < 1) { hideLoader(); Swal.fire('Error','Nominal harus diisi','error'); return; }
                     const data = {
-                        tanggal: document.getElementById('dd_tanggal').value, jenis: jenis,
-                        keterangan: document.getElementById('dd_keterangan').value, nominal: nom
+                        tanggal: new Date().toISOString().split('T')[0], jenis: 'Setor',
+                        keterangan: `Alokasi ${persen}% pemasukan ${bulan}`, nominal: nominal
                     };
                     fetchAPI('simpanDanaDarurat', { data: data }).then(res => {
                         hideLoader();
-                        if (res.status) { Swal.fire('Sukses', '', 'success'); document.getElementById('formDanaDarurat').reset(); syncData(); }
+                        if (res.status) { Swal.fire('Dialokasikan!', `Rp ${formatRupiah(nominal)} masuk Dana Darurat`, 'success'); document.getElementById('formAlokasiDD').reset(); document.getElementById('dd-nominal-alokasi').innerText = 'Rp 0'; syncData(); }
+                        else Swal.fire('Error', res.message, 'error');
+                    });
+                }
+            });
+        }
+
+        function submitTarikDD(e) {
+            e.preventDefault();
+            const nom = getNominalValue('dd_tarik_nominal');
+            if(!nom || nom < 1) { Swal.fire('Error','Nominal harus diisi','error'); return; }
+            Swal.fire({ title: 'Tarik Dana Darurat?', text: `Nominal: Rp ${formatRupiah(nom)}`, icon: 'warning', showCancelButton: true, confirmButtonColor: '#e74c3c', confirmButtonText: 'Ya, Tarik'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    showLoader();
+                    const data = {
+                        tanggal: document.getElementById('dd_tarik_tanggal').value, jenis: 'Tarik',
+                        keterangan: document.getElementById('dd_tarik_keterangan').value, nominal: nom
+                    };
+                    fetchAPI('simpanDanaDarurat', { data: data }).then(res => {
+                        hideLoader();
+                        if (res.status) { Swal.fire('Dana Ditarik!', res.message, 'success'); document.getElementById('formTarikDD').reset(); syncData(); }
                         else Swal.fire('Error', res.message, 'error');
                     });
                 }
@@ -394,31 +459,18 @@
                 document.getElementById('dash-saldo-kas').innerText = formatRupiah(data.saldoKas);
                 document.getElementById('dash-saldo-darurat').innerText = formatRupiah(data.saldoDarurat);
 
-                // Render Chart via filter
-                filterDashboard();
-
-                // Render Dashboard
-                let htmlDash = '';
-                if(data.riwayatGabungan.length === 0) htmlDash = '<p class="text-center text-muted py-3">Belum ada aktivitas.</p>';
-                data.riwayatGabungan.forEach(item => {
-                    let icon, nominalText;
-                    if(item.tipeSumber === 'E-Arsip') {
-                        icon = '<i class="fa-solid fa-file-invoice text-primary"></i>';
-                        nominalText = `<a href="${item.file_url}" target="_blank" class="btn btn-sm btn-outline-primary" style="font-size:0.7rem;"><i class="fa-solid fa-eye"></i> Lihat</a>`;
-                    } else {
-                        let isPlus = (item.jenis === 'Pemasukan' || item.jenis === 'Setor');
-                        icon = item.tipeSumber === 'Arus Kas' ? '<i class="fa-solid fa-wallet text-success"></i>' : '<i class="fa-solid fa-umbrella text-warning"></i>';
-                        nominalText = `<span class="${isPlus ? 'text-success' : 'text-danger'} fw-bold" style="font-size:0.9rem;">${isPlus ? '+' : '-'} Rp ${formatRupiah(item.nominal)}</span>`;
-                    }
-                    htmlDash += `
-                    <div class="list-group-item px-0 py-2">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div><small class="text-muted d-block">${icon} ${item.tipeSumber} • ${item.tanggal}</small><span class="fw-bold" style="font-size:0.95rem;">${item.tipeSumber==='E-Arsip' ? item.nama_dokumen : item.keterangan}</span>${item.jumlah ? '<br><small class="text-muted"><i class="fa-solid fa-box-open"></i> '+item.jumlah+' '+item.satuan+'</small>' : ''}</div>
-                            ${nominalText}
-                        </div>
-                    </div>`;
+                // Hitung pemasukan bulan ini utk Dana Darurat
+                const now2 = new Date();
+                pemasukanBulanIni = 0;
+                data.riwayatArusKas.forEach(i => {
+                    const d = parseDateString(i.tanggal);
+                    if(i.jenis === 'Pemasukan' && d.getMonth() === now2.getMonth() && d.getFullYear() === now2.getFullYear()) pemasukanBulanIni += i.nominal;
                 });
-                document.getElementById('dashboard-history').innerHTML = htmlDash;
+                document.getElementById('dd-pemasukan-bulan').innerText = 'Rp ' + formatRupiah(pemasukanBulanIni);
+                hitungAlokasi();
+
+                // Render Chart + Tabel via filter
+                filterDashboard();
 
                 // Render Kas
                 let htmlKas = '';
@@ -469,26 +521,59 @@
         }
 
         // FUNGSI FILTER WAKTU & CHART
-        function parseDateString(dateStr) { const parts = dateStr.split('/'); return new Date(parts[2], parts[1] - 1, parts[0]); }
-        function getWeekNumber(d) { const oneJan = new Date(d.getFullYear(), 0, 1); return Math.ceil(((d - oneJan) / 86400000 + oneJan.getDay() + 1) / 7); }
+        const HARI = ['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
+        function parseDateString(dateStr) { const p = dateStr.split('/'); return new Date(p[2], p[1] - 1, p[0]); }
+        function getStartOfWeek(d) { const day = d.getDay(), diff = d.getDate() - day + (day === 0 ? -6 : 1); const start = new Date(d); start.setDate(diff); start.setHours(0,0,0,0); return start; }
+        function isMatchPeriode(d, p, now) {
+            if(p==='semua') return true;
+            if(p==='harian') return d.toDateString()===now.toDateString();
+            if(p==='mingguan') { const ws = getStartOfWeek(now), we = new Date(ws); we.setDate(we.getDate()+6); we.setHours(23,59,59); return d >= ws && d <= we; }
+            if(p==='bulanan') return d.getMonth()===now.getMonth() && d.getFullYear()===now.getFullYear();
+            return false;
+        }
 
         function filterDashboard() {
             if (!globalDataForPDF) return;
             const p = document.getElementById('filter-periode').value, now = new Date();
-            let pem = 0, peng = 0, label = p === 'harian' ? 'Hari Ini' : (p === 'mingguan' ? 'Minggu Ini' : (p === 'bulanan' ? 'Bulan Ini' : 'Semua'));
+            let pem = 0, peng = 0, label = p==='harian' ? 'Hari Ini' : (p==='mingguan' ? 'Minggu Ini' : (p==='bulanan' ? 'Bulan Ini' : 'Semua'));
             document.getElementById('label-pem').innerText = label; document.getElementById('label-peng').innerText = label;
 
-            globalDataForPDF.riwayatArusKas.forEach(i => {
-                const d = parseDateString(i.tanggal); let m = false;
-                if(p==='semua') m=true;
-                else if(p==='harian') m=(d.toDateString()===now.toDateString());
-                else if(p==='mingguan') m=(getWeekNumber(d)===getWeekNumber(now)&&d.getFullYear()===now.getFullYear());
-                else if(p==='bulanan') m=(d.getMonth()===now.getMonth()&&d.getFullYear()===now.getFullYear());
-                if(m) { if(i.jenis==='Pemasukan') pem+=i.nominal; if(i.jenis==='Pengeluaran') peng+=i.nominal; }
+            // Filter data & build tabel
+            let filtered = [];
+            const sortedKas = [...globalDataForPDF.riwayatArusKas].reverse();
+            sortedKas.forEach(i => {
+                const d = parseDateString(i.tanggal);
+                if(isMatchPeriode(d, p, now)) {
+                    if(i.jenis==='Pemasukan') pem += i.nominal;
+                    if(i.jenis==='Pengeluaran') peng += i.nominal;
+                    filtered.push({...i, dateObj: d});
+                }
             });
+
             document.getElementById('filter-pemasukan').innerText = formatRupiah(pem);
             document.getElementById('filter-pengeluaran').innerText = formatRupiah(peng);
             renderChart(pem, peng);
+
+            // Render Tabel Dashboard
+            let rows = '', saldo = 0;
+            if(filtered.length === 0) rows = '<tr><td colspan="7" class="text-center text-muted py-3">Tidak ada transaksi</td></tr>';
+            filtered.forEach((item, idx) => {
+                const d = item.dateObj;
+                const hariTgl = HARI[d.getDay()] + ' / ' + item.tanggal;
+                const pemCell = item.jenis === 'Pemasukan' ? formatRupiah(item.nominal) : '-';
+                const pengCell = item.jenis === 'Pengeluaran' ? formatRupiah(item.nominal) : '-';
+                saldo += (item.jenis === 'Pemasukan' ? item.nominal : -item.nominal);
+                rows += `<tr>
+                    <td class="text-center">${idx+1}</td>
+                    <td style="white-space:nowrap;">${hariTgl}</td>
+                    <td style="font-size:0.7rem;">${item.id}</td>
+                    <td>${item.keterangan}</td>
+                    <td class="text-success text-end fw-bold">${pemCell}</td>
+                    <td class="text-danger text-end fw-bold">${pengCell}</td>
+                    <td class="text-end fw-bold" style="color:#1565c0;">${formatRupiah(saldo)}</td>
+                </tr>`;
+            });
+            document.getElementById('tbody-kas-dashboard').innerHTML = rows;
         }
 
         function renderChart(pemasukan, pengeluaran) {

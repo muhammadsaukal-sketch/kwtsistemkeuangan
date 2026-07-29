@@ -173,10 +173,6 @@
                                 <div class="mb-3"><label class="form-label text-muted small">Jenis Transaksi</label><select id="ak_jenis" class="form-select" required onchange="updateKategoriKas()"><option value="Pemasukan">Pemasukan (+)</option><option value="Pengeluaran">Pengeluaran (-)</option></select></div>
                                 <div class="mb-3"><label class="form-label text-muted small">Kategori</label><select id="ak_kategori" class="form-select" required></select></div>
                                 <div class="mb-3"><label class="form-label text-muted small">Keterangan</label><input type="text" id="ak_keterangan" class="form-control" placeholder="Detail transaksi..." required></div>
-                                <div class="row g-2 mb-3">
-                                    <div class="col-6"><label class="form-label text-muted small">Jumlah</label><input type="number" id="ak_jumlah" class="form-control" required min="1" placeholder="Cth: 5"></div>
-                                    <div class="col-6"><label class="form-label text-muted small">Satuan</label><select id="ak_satuan" class="form-select" required><option value="Pcs">Pcs</option><option value="Kg">Kg</option><option value="Liter">Liter</option><option value="Paket">Paket</option><option value="Unit">Unit</option><option value="Lembar">Lembar</option><option value="Lain-lain">Lain-lain</option></select></div>
-                                </div>
                                 <div class="mb-4"><label class="form-label text-muted small">Nominal Total (Rp)</label><input type="text" id="ak_nominal" class="form-control fw-bold nominal-input" required placeholder="Cth: 120.000" oninput="formatNominalInput(this)"></div>
                                 <button type="submit" class="btn btn-custom-green w-100 py-2">Simpan ke Buku Kas</button>
                             </form>
@@ -443,7 +439,6 @@
                     const data = {
                         tanggal: document.getElementById('ak_tanggal').value, jenis: document.getElementById('ak_jenis').value,
                         kategori: document.getElementById('ak_kategori').value, keterangan: document.getElementById('ak_keterangan').value,
-                        jumlah: document.getElementById('ak_jumlah').value, satuan: document.getElementById('ak_satuan').value,
                         nominal: nom
                     };
                     fetchAPI('simpanArusKas', { data: data }).then(res => {
@@ -713,7 +708,7 @@
                 }
                 count++;
                 let sign = item.jenis === 'Pemasukan' ? '+' : '-';
-                html += `<div class="list-group-item p-3 border-bottom"><div class="d-flex justify-content-between align-items-center"><div><small class="text-muted">${item.tanggal} • ${item.kategori}</small><h6 class="mb-0 fw-bold">${item.keterangan}</h6>${item.jumlah ? '<small class="text-secondary"><i class="fa-solid fa-box-open"></i> '+item.jumlah+' '+item.satuan+'</small>' : ''}<h6 class="${item.jenis === 'Pemasukan' ? 'text-success' : 'text-danger'} fw-bold mb-0 mt-1">${sign} Rp ${formatRupiah(item.nominal)}</h6></div><button class="btn-delete-sm" onclick="hapusData('${item.id}', 'AK')"><i class="fa-solid fa-trash-can"></i></button></div></div>`;
+                html += `<div class="list-group-item p-3 border-bottom"><div class="d-flex justify-content-between align-items-center"><div><small class="text-muted">${item.tanggal} • ${item.kategori}</small><h6 class="mb-0 fw-bold">${item.keterangan}</h6><h6 class="${item.jenis === 'Pemasukan' ? 'text-success' : 'text-danger'} fw-bold mb-0 mt-1">${sign} Rp ${formatRupiah(item.nominal)}</h6></div><button class="btn-delete-sm" onclick="hapusData('${item.id}', 'AK')"><i class="fa-solid fa-trash-can"></i></button></div></div>`;
             });
             if(!count) html = '<div class="p-4 text-center text-muted">Tidak ditemukan</div>';
             document.getElementById('list-riwayat-kas').innerHTML = html;
@@ -736,10 +731,10 @@
         // EXPORT CSV / EXCEL
         function exportCSV() {
             if(!globalDataForPDF) { Swal.fire('Tunggu','Data sedang dimuat...','info'); return; }
-            let csv = '\uFEFFNo,Tanggal,Jenis,Kategori,Keterangan,Jumlah,Satuan,Nominal\n';
+            let csv = '\uFEFFNo,Tanggal,Jenis,Kategori,Keterangan,Nominal\n';
             const arr = [...globalDataForPDF.riwayatArusKas].reverse();
             arr.forEach((item, i) => {
-                csv += `${i+1},"${item.tanggal}","${item.jenis}","${item.kategori}","${item.keterangan}","${item.jumlah||''}","${item.satuan||''}",${item.nominal}\n`;
+                csv += `${i+1},"${item.tanggal}","${item.jenis}","${item.kategori}","${item.keterangan}",${item.nominal}\n`;
             });
             const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
             const link = document.createElement('a');

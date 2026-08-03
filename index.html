@@ -148,7 +148,16 @@
                 </div>
 
                 <div class="card mb-4 p-3">
-                    <h6 class="fw-bold mb-3 text-secondary border-bottom pb-2"><i class="fa-solid fa-table-list me-2"></i>Rincian Arus Kas</h6>
+                    <div class="d-flex justify-content-between align-items-center mb-3 border-bottom pb-2">
+                        <h6 class="fw-bold text-secondary mb-0"><i class="fa-solid fa-table-list me-2"></i>Rincian Arus Kas</h6>
+                        <select id="filter-bulan" class="form-select form-select-sm w-auto shadow-sm" onchange="filterDashboard()">
+                            <option value="semua">Semua Bulan</option>
+                            <option value="0">Januari</option><option value="1">Februari</option><option value="2">Maret</option>
+                            <option value="3">April</option><option value="4">Mei</option><option value="5">Juni</option>
+                            <option value="6">Juli</option><option value="7">Agustus</option><option value="8">September</option>
+                            <option value="9">Oktober</option><option value="10">November</option><option value="11">Desember</option>
+                        </select>
+                    </div>
                     <div class="tabel-scroll" id="tabel-kas-wrapper">
                         <table class="tabel-kas">
                             <thead><tr><th>No</th><th>Hari / Tanggal</th><th>No. Bukti</th><th>Keterangan</th><th>Pemasukan</th><th>Pengeluaran</th><th>Saldo</th></tr></thead>
@@ -589,15 +598,13 @@
             let pem = 0, peng = 0, label = p==='harian' ? 'Hari Ini' : (p==='mingguan' ? 'Minggu Ini' : (p==='bulanan' ? 'Bulan Ini' : 'Semua'));
             document.getElementById('label-pem').innerText = label; document.getElementById('label-peng').innerText = label;
 
-            // Filter data & build tabel
-            let filtered = [];
+            // Filter data untuk CARDS & CHART (pakai filter periode)
             const sortedKas = [...globalDataForPDF.riwayatArusKas].reverse();
             sortedKas.forEach(i => {
                 const d = parseDateString(i.tanggal);
                 if(isMatchPeriode(d, p, now)) {
                     if(i.jenis==='Pemasukan') pem += i.nominal;
                     if(i.jenis==='Pengeluaran') peng += i.nominal;
-                    filtered.push({...i, dateObj: d});
                 }
             });
 
@@ -605,10 +612,23 @@
             document.getElementById('filter-pengeluaran').innerText = formatRupiah(peng);
             renderChart(pem, peng);
 
+            // Filter data untuk TABEL (pakai filter bulan)
+            const bulan = document.getElementById('filter-bulan').value;
+            const tahunSekarang = now.getFullYear();
+            let filteredTabel = [];
+            sortedKas.forEach(i => {
+                const d = parseDateString(i.tanggal);
+                if(bulan === 'semua') {
+                    filteredTabel.push({...i, dateObj: d});
+                } else if(d.getMonth() === Number(bulan) && d.getFullYear() === tahunSekarang) {
+                    filteredTabel.push({...i, dateObj: d});
+                }
+            });
+
             // Render Tabel Dashboard
             let rows = '', saldo = 0;
-            if(filtered.length === 0) rows = '<tr><td colspan="7" class="text-center text-muted py-3">Tidak ada transaksi</td></tr>';
-            filtered.forEach((item, idx) => {
+            if(filteredTabel.length === 0) rows = '<tr><td colspan="7" class="text-center text-muted py-3">Tidak ada transaksi</td></tr>';
+            filteredTabel.forEach((item, idx) => {
                 const d = item.dateObj;
                 const hariTgl = HARI[d.getDay()] + ' / ' + item.tanggal;
                 const pemCell = item.jenis === 'Pemasukan' ? formatRupiah(item.nominal) : '-';
@@ -626,8 +646,13 @@
             });
             document.getElementById('tbody-kas-dashboard').innerHTML = rows;
 
-            // Render Kategori Chart (filtered)
-            renderKategoriChart(filtered);
+            // Render Kategori Chart (pakai filter periode)
+            let filteredChart = [];
+            sortedKas.forEach(i => {
+                const d = parseDateString(i.tanggal);
+                if(isMatchPeriode(d, p, now)) filteredChart.push(i);
+            });
+            renderKategoriChart(filteredChart);
         }
 
         function renderChart(pemasukan, pengeluaran) {
